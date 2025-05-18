@@ -1,0 +1,4 @@
+../Core/Src/usart1.c:5:6:USART1_Config	1
+../Core/Src/usart1.c:20:6:USART1_SendChar	2
+../Core/Src/usart1.c:26:6:USART1_SendString	2
+../Core/Src/usart1.c:34:6:USART1_SendNumber	1

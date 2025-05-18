@@ -1,0 +1,4 @@
+../Core/Src/usart1.c:5:6:USART1_Config	4	static
+../Core/Src/usart1.c:20:6:USART1_SendChar	16	static
+../Core/Src/usart1.c:26:6:USART1_SendString	16	static
+../Core/Src/usart1.c:34:6:USART1_SendNumber	32	static
