@@ -14,6 +14,3 @@ It is responsible for receiving data from an STM32 device and uploading it to th
 This project is part of a system where the STM32 collects or generates data,  
 and the ESP32 acts as a bridge to forward that data to an online cloud service for storage, monitoring, or processing.
 
----
-
-Feel free to update this README with more specific implementation details.
