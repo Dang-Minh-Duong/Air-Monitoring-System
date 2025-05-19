@@ -1,0 +1,4 @@
+../Core/Src/UART1.c:10:6:USART1_Config	4	static
+../Core/Src/UART1.c:36:6:USART1_SendChar	16	static
+../Core/Src/UART1.c:46:6:USART1_SendString	16	static
+../Core/Src/UART1.c:58:6:USART1_SendNumber	32	static

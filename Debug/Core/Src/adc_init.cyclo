@@ -1,1 +1,2 @@
-../Core/Src/adc_init.c:4:6:ADC_Init	1
+../Core/Src/ADC_Init.c:10:6:ADC_Init	1
+../Core/Src/ADC_Init.c:36:10:ADC_Read	2

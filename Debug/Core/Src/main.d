@@ -1,10 +1,9 @@
-Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/system_clock.h \
- ../Core/Inc/gpio_init.h ../Core/Inc/adc_init.h ../Core/Inc/adc_read.h \
- ../Core/Inc/tim2_pwm.h ../Core/Inc/usart1.h ../Core/Inc/motor_control.h
+Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/ADC_INIT.h \
+ ../Core/Inc/GPIO_INIT.h ../Core/Inc/MONITOR_CONTROL.h \
+ ../Core/Inc/TIM2_PWM.h ../Core/Inc/USART1.h ../Core/Inc/system_clock.h
+../Core/Inc/ADC_INIT.h:
+../Core/Inc/GPIO_INIT.h:
+../Core/Inc/MONITOR_CONTROL.h:
+../Core/Inc/TIM2_PWM.h:
+../Core/Inc/USART1.h:
 ../Core/Inc/system_clock.h:
-../Core/Inc/gpio_init.h:
-../Core/Inc/adc_init.h:
-../Core/Inc/adc_read.h:
-../Core/Inc/tim2_pwm.h:
-../Core/Inc/usart1.h:
-../Core/Inc/motor_control.h:

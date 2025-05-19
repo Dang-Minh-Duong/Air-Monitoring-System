@@ -5,9 +5,10 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../Core/Src/adc_init.c \
-../Core/Src/adc_read.c \
-../Core/Src/gpio_init.c \
+../Core/Src/ADC_Init.c \
+../Core/Src/GPIO_Init.c \
+../Core/Src/TIM2_PWM.c \
+../Core/Src/UART1.c \
 ../Core/Src/main.c \
 ../Core/Src/motor_control.c \
 ../Core/Src/stm32f4xx_hal_msp.c \
@@ -15,14 +16,13 @@ C_SRCS += \
 ../Core/Src/syscalls.c \
 ../Core/Src/sysmem.c \
 ../Core/Src/system_clock.c \
-../Core/Src/system_stm32f4xx.c \
-../Core/Src/tim2_pwm.c \
-../Core/Src/usart1.c 
+../Core/Src/system_stm32f4xx.c 
 
 OBJS += \
-./Core/Src/adc_init.o \
-./Core/Src/adc_read.o \
-./Core/Src/gpio_init.o \
+./Core/Src/ADC_Init.o \
+./Core/Src/GPIO_Init.o \
+./Core/Src/TIM2_PWM.o \
+./Core/Src/UART1.o \
 ./Core/Src/main.o \
 ./Core/Src/motor_control.o \
 ./Core/Src/stm32f4xx_hal_msp.o \
@@ -30,14 +30,13 @@ OBJS += \
 ./Core/Src/syscalls.o \
 ./Core/Src/sysmem.o \
 ./Core/Src/system_clock.o \
-./Core/Src/system_stm32f4xx.o \
-./Core/Src/tim2_pwm.o \
-./Core/Src/usart1.o 
+./Core/Src/system_stm32f4xx.o 
 
 C_DEPS += \
-./Core/Src/adc_init.d \
-./Core/Src/adc_read.d \
-./Core/Src/gpio_init.d \
+./Core/Src/ADC_Init.d \
+./Core/Src/GPIO_Init.d \
+./Core/Src/TIM2_PWM.d \
+./Core/Src/UART1.d \
 ./Core/Src/main.d \
 ./Core/Src/motor_control.d \
 ./Core/Src/stm32f4xx_hal_msp.d \
@@ -45,9 +44,7 @@ C_DEPS += \
 ./Core/Src/syscalls.d \
 ./Core/Src/sysmem.d \
 ./Core/Src/system_clock.d \
-./Core/Src/system_stm32f4xx.d \
-./Core/Src/tim2_pwm.d \
-./Core/Src/usart1.d 
+./Core/Src/system_stm32f4xx.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
@@ -57,7 +54,7 @@ Core/Src/%.o Core/Src/%.su Core/Src/%.cyclo: ../Core/Src/%.c Core/Src/subdir.mk
 clean: clean-Core-2f-Src
 
 clean-Core-2f-Src:
-	-$(RM) ./Core/Src/adc_init.cyclo ./Core/Src/adc_init.d ./Core/Src/adc_init.o ./Core/Src/adc_init.su ./Core/Src/adc_read.cyclo ./Core/Src/adc_read.d ./Core/Src/adc_read.o ./Core/Src/adc_read.su ./Core/Src/gpio_init.cyclo ./Core/Src/gpio_init.d ./Core/Src/gpio_init.o ./Core/Src/gpio_init.su ./Core/Src/main.cyclo ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/main.su ./Core/Src/motor_control.cyclo ./Core/Src/motor_control.d ./Core/Src/motor_control.o ./Core/Src/motor_control.su ./Core/Src/stm32f4xx_hal_msp.cyclo ./Core/Src/stm32f4xx_hal_msp.d ./Core/Src/stm32f4xx_hal_msp.o ./Core/Src/stm32f4xx_hal_msp.su ./Core/Src/stm32f4xx_it.cyclo ./Core/Src/stm32f4xx_it.d ./Core/Src/stm32f4xx_it.o ./Core/Src/stm32f4xx_it.su ./Core/Src/syscalls.cyclo ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/syscalls.su ./Core/Src/sysmem.cyclo ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/sysmem.su ./Core/Src/system_clock.cyclo ./Core/Src/system_clock.d ./Core/Src/system_clock.o ./Core/Src/system_clock.su ./Core/Src/system_stm32f4xx.cyclo ./Core/Src/system_stm32f4xx.d ./Core/Src/system_stm32f4xx.o ./Core/Src/system_stm32f4xx.su ./Core/Src/tim2_pwm.cyclo ./Core/Src/tim2_pwm.d ./Core/Src/tim2_pwm.o ./Core/Src/tim2_pwm.su ./Core/Src/usart1.cyclo ./Core/Src/usart1.d ./Core/Src/usart1.o ./Core/Src/usart1.su
+	-$(RM) ./Core/Src/ADC_Init.cyclo ./Core/Src/ADC_Init.d ./Core/Src/ADC_Init.o ./Core/Src/ADC_Init.su ./Core/Src/GPIO_Init.cyclo ./Core/Src/GPIO_Init.d ./Core/Src/GPIO_Init.o ./Core/Src/GPIO_Init.su ./Core/Src/TIM2_PWM.cyclo ./Core/Src/TIM2_PWM.d ./Core/Src/TIM2_PWM.o ./Core/Src/TIM2_PWM.su ./Core/Src/UART1.cyclo ./Core/Src/UART1.d ./Core/Src/UART1.o ./Core/Src/UART1.su ./Core/Src/main.cyclo ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/main.su ./Core/Src/motor_control.cyclo ./Core/Src/motor_control.d ./Core/Src/motor_control.o ./Core/Src/motor_control.su ./Core/Src/stm32f4xx_hal_msp.cyclo ./Core/Src/stm32f4xx_hal_msp.d ./Core/Src/stm32f4xx_hal_msp.o ./Core/Src/stm32f4xx_hal_msp.su ./Core/Src/stm32f4xx_it.cyclo ./Core/Src/stm32f4xx_it.d ./Core/Src/stm32f4xx_it.o ./Core/Src/stm32f4xx_it.su ./Core/Src/syscalls.cyclo ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/syscalls.su ./Core/Src/sysmem.cyclo ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/sysmem.su ./Core/Src/system_clock.cyclo ./Core/Src/system_clock.d ./Core/Src/system_clock.o ./Core/Src/system_clock.su ./Core/Src/system_stm32f4xx.cyclo ./Core/Src/system_stm32f4xx.d ./Core/Src/system_stm32f4xx.o ./Core/Src/system_stm32f4xx.su
 
 .PHONY: clean-Core-2f-Src
 

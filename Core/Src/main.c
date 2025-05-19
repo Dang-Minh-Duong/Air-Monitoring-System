@@ -11,7 +11,7 @@ int main(void)
     GPIO_Init();
     ADC_Init();
     USART1_Config();
-    TIM2_Init();
+    TIM2_Init(1000, 999);
 
     while (1)
     {
