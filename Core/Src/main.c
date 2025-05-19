@@ -1,5 +1,4 @@
 #include <ADC_INIT.h>
-#include <ADC_READ.h>
 #include <GPIO_INIT.h>
 #include <MONITOR_CONTROL.h>
 #include <TIM2_PWM.h>
