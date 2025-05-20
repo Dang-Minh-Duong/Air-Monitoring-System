@@ -1,2 +1,5 @@
-../Core/Src/ADC_Init.c:10:6:ADC_Init	1
-../Core/Src/ADC_Init.c:36:10:ADC_Read	2
+../Drivers/CMSIS/Include/core_cm4.h:1684:22:__NVIC_EnableIRQ	2
+../Core/Src/ADC_Init.c:28:6:ADC_Init	1
+../Core/Src/ADC_Init.c:70:6:ADC_StartConversion	1
+../Core/Src/ADC_Init.c:79:10:ADC_GetValue	1
+../Core/Src/ADC_Init.c:88:6:ADC_IRQHandler	2

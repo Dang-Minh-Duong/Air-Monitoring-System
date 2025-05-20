@@ -11,12 +11,13 @@ int main(void)
     Clock_bus_init();
 
     GPIO_Init();
-    ADC_Init();
+    ADC_Init(1, 3);
     TIM2_Init(1000, 999);
 
     while (1)
     {
-        uint16_t adc_value = ADC_Read();
+    	ADC_StartConversion();
+        uint16_t adc_value = ADC_GetValue();
         Motor_Control(adc_value);
     }
 }

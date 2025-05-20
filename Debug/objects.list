@@ -1,4 +1,5 @@
 "./Core/Src/ADC_Init.o"
+"./Core/Src/Clock_bus_init.o"
 "./Core/Src/GPIO_Init.o"
 "./Core/Src/TIM2_PWM.o"
 "./Core/Src/main.o"

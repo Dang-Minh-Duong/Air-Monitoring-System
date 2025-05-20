@@ -1,6 +1,4 @@
-Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/ADC_INIT.h \
- ../Core/Inc/GPIO_INIT.h ../Core/Inc/MONITOR_CONTROL.h \
- ../Core/Inc/TIM2_PWM.h ../Core/Inc/system_clock.h \
+Core/Src/Clock_bus_init.o: ../Core/Src/Clock_bus_init.c \
  ../Core/Inc/Clock_bus_init.h \
  ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h \
  ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f401xc.h \
@@ -27,11 +25,6 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/ADC_INIT.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ramfunc.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h
-../Core/Inc/ADC_INIT.h:
-../Core/Inc/GPIO_INIT.h:
-../Core/Inc/MONITOR_CONTROL.h:
-../Core/Inc/TIM2_PWM.h:
-../Core/Inc/system_clock.h:
 ../Core/Inc/Clock_bus_init.h:
 ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h:
 ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f401xc.h:
