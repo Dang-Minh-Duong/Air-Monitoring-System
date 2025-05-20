@@ -10,9 +10,6 @@
  */
 void TIM2_Init(uint16_t psc, uint16_t arr)
 {
-    /* 1. Enable TIM2 clock */
-    RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
-
     /* 2. Reset TIM2 configuration */
     TIM2->CR1 = 0;
     TIM2->CCMR1 = 0;
