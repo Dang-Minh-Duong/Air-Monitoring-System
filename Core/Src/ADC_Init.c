@@ -1,4 +1,4 @@
-#include "ADC_INIT.h"
+#include <ADC_init.h>
 #include "stm32f4xx.h"
 
 /**
@@ -25,7 +25,7 @@ volatile uint16_t adc_result = 0;
  *        6: 144 cycles
  *        7: 480 cycles
  */
-void ADC_Init(uint8_t resolution, uint8_t sample_time)
+void ADC_init(uint8_t resolution, uint8_t sample_time)
 {
     /* Enable ADC1 clock */
     RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;
@@ -67,7 +67,7 @@ void ADC_Init(uint8_t resolution, uint8_t sample_time)
 /**
  * @brief Start ADC conversion by software trigger.
  */
-void ADC_StartConversion(void)
+void ADC_start_conversion(void)
 {
     ADC1->CR2 |= ADC_CR2_SWSTART;
 }
@@ -76,7 +76,7 @@ void ADC_StartConversion(void)
  * @brief Retrieve the latest ADC conversion result.
  * @return uint16_t ADC conversion result (0-4095 for 12-bit)
  */
-uint16_t ADC_GetValue(void)
+uint16_t ADC_get_value(void)
 {
     return adc_result;
 }

@@ -8,7 +8,7 @@
  *         - PA2 : General purpose output (digital output) used for control motor direction
  *         - PA3, PA4, PA5 : General purpose outputs (LED control)
  */
-void GPIO_Init(void) {
+void GPIO_init(void) {
     GPIO_ADC_init();
     GPIO_PWM_init(1);
     GPIO_LED_init();

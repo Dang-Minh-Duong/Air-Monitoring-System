@@ -7,7 +7,7 @@
  * @brief  Initialize all required GPIOA pins.
  *         - Calls ADC, PWM, and LED GPIO configuration functions.
  */
-void GPIO_Init(void);
+void GPIO_init(void);
 
 /**
  * @brief  Configure PA0 as analog input for ADC channel 0.

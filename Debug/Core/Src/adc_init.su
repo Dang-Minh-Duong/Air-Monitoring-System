@@ -1,5 +1,5 @@
 ../Drivers/CMSIS/Include/core_cm4.h:1684:22:__NVIC_EnableIRQ	16	static,ignoring_inline_asm
-../Core/Src/ADC_Init.c:28:6:ADC_Init	16	static
-../Core/Src/ADC_Init.c:70:6:ADC_StartConversion	4	static
-../Core/Src/ADC_Init.c:79:10:ADC_GetValue	4	static
-../Core/Src/ADC_Init.c:88:6:ADC_IRQHandler	4	static
+../Core/Src/ADC_init.c:28:6:ADC_init	16	static
+../Core/Src/ADC_init.c:70:6:ADC_start_conversion	4	static
+../Core/Src/ADC_init.c:79:10:ADC_get_value	4	static
+../Core/Src/ADC_init.c:88:6:ADC_IRQHandler	4	static

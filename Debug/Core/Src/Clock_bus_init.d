@@ -1,4 +1,4 @@
-Core/Src/Clock_bus_init.o: ../Core/Src/Clock_bus_init.c \
+Core/Src/clock_bus_init.o: ../Core/Src/clock_bus_init.c \
  ../Core/Inc/Clock_bus_init.h \
  ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h \
  ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f401xc.h \

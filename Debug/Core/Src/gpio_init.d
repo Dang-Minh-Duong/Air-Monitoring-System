@@ -1,4 +1,4 @@
-Core/Src/GPIO_Init.o: ../Core/Src/GPIO_Init.c ../Core/Inc/GPIO_INIT.h \
+Core/Src/GPIO_init.o: ../Core/Src/GPIO_init.c ../Core/Inc/GPIO_INIT.h \
  ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h \
  ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f401xc.h \
  ../Drivers/CMSIS/Include/core_cm4.h \
