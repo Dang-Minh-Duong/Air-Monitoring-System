@@ -25,6 +25,6 @@
  * Example:
  *   TIM2_Init(83, 999);  // With 84MHz clock → 1kHz PWM
  */
-void TIM2_Init(uint16_t psc, uint16_t arr);
+void TIM2_init(uint16_t psc, uint16_t arr);
 
 #endif /* TIM2_PWM_H */

@@ -8,7 +8,7 @@
  *         PWM frequency = Timer_Clock / ((PSC + 1) * (ARR + 1))
  *         Duty cycle = CCR2 / (ARR + 1)
  */
-void TIM2_Init(uint16_t psc, uint16_t arr)
+void TIM2_init(uint16_t psc, uint16_t arr)
 {
     /* 2. Reset TIM2 configuration */
     TIM2->CR1 = 0;

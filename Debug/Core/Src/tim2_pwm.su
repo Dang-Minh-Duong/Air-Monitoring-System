@@ -1,1 +1,1 @@
-../Core/Src/TIM2_PWM.c:11:6:TIM2_Init	16	static
+../Core/Src/TIM2_PWM.c:11:6:TIM2_init	16	static

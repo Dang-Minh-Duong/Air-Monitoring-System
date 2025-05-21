@@ -12,7 +12,7 @@ int main(void)
 
     GPIO_init();
     ADC_init(1, 3);
-    TIM2_Init(1000, 999);
+    TIM2_init(1000, 999);
 
     while (1)
     {

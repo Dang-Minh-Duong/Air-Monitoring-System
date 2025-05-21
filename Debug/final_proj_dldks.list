@@ -562,12 +562,12 @@ void GPIO_LED_init(void) {
  80004c6:	4770      	bx	lr
  80004c8:	40020000 	.word	0x40020000
 
-080004cc <TIM2_Init>:
+080004cc <TIM2_init>:
  * @param  arr: Auto-reload value (ARR) → determines PWM period
  *         PWM frequency = Timer_Clock / ((PSC + 1) * (ARR + 1))
  *         Duty cycle = CCR2 / (ARR + 1)
  */
-void TIM2_Init(uint16_t psc, uint16_t arr)
+void TIM2_init(uint16_t psc, uint16_t arr)
 {
  80004cc:	b480      	push	{r7}
  80004ce:	b083      	sub	sp, #12
@@ -714,10 +714,10 @@ int main(void)
  80005ba:	2103      	movs	r1, #3
  80005bc:	2001      	movs	r0, #1
  80005be:	f7ff fe27 	bl	8000210 <ADC_init>
-    TIM2_Init(1000, 999);
+    TIM2_init(1000, 999);
  80005c2:	f240 31e7 	movw	r1, #999	@ 0x3e7
  80005c6:	f44f 707a 	mov.w	r0, #1000	@ 0x3e8
- 80005ca:	f7ff ff7f 	bl	80004cc <TIM2_Init>
+ 80005ca:	f7ff ff7f 	bl	80004cc <TIM2_init>
 
     while (1)
     {

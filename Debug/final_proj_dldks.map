@@ -2718,9 +2718,9 @@ LOAD F:/stm32cube ide/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.
  .text.GPIO_LED_init
                 0x0800042c       0xa0 ./Core/Src/GPIO_init.o
                 0x0800042c                GPIO_LED_init
- .text.TIM2_Init
+ .text.TIM2_init
                 0x080004cc       0xa4 ./Core/Src/TIM2_PWM.o
-                0x080004cc                TIM2_Init
+                0x080004cc                TIM2_init
  .text.clock_bus_init
                 0x08000570       0x38 ./Core/Src/clock_bus_init.o
                 0x08000570                clock_bus_init
