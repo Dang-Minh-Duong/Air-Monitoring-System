@@ -13,10 +13,7 @@
 #define SENS_MEAS1_DATA_MASK       0x3FFF     
 
 
-#define ATTEN_0DB                  0x0       // 00: 0 dB
-#define ATTEN_3DB                  0x1       // 01: 3 dB ()
-#define ATTEN_6DB                  0x2       // 10: 6 dB
-#define ATTEN_11DB                 0x3       // 11: 1 dB ()
+
 
 void adc_init() {
     
