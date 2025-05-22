@@ -46,6 +46,8 @@ void UART2_Config(int baudRate)
     UART_CLKDIV_REG = 521;
     UART_CONF1_REG |= (1 << 0);
     UART_INT_ENA_REG = (1 << 0);  
+    
+    esp_intr_alloc(ETS_UART2_INTR_SOURCE, 0, UART2_ISR, NULL, NULL);
 
 }
 
