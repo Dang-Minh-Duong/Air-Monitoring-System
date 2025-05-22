@@ -4,6 +4,7 @@
 #include <TIM2_PWM.h>
 #include "system_clock.h"
 #include "clock_bus_init.h"
+#include "pinDriver.h"
 
 int main(void)
 {
