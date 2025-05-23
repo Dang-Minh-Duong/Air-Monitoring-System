@@ -1,1 +1,5 @@
-void app_main() {}
+#include "adc.h"
+
+void app_main() {
+
+}
