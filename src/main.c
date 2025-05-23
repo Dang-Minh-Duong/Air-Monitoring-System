@@ -1,25 +1,12 @@
 #include "pwm.h"
 
-// Hàm delay đơn giản
-void delay(volatile int count) {
-    while(count--) __asm__("nop");
-}
+void app_main(void) {
+    uint8_t gpio = 18;
+    uint8_t channel = 0;
+    uint8_t timer = 0;
+    uint32_t freq = 1000;       // 1kHz
+    uint8_t resolution = 10;    // 10-bit
+    uint32_t duty = 512;        // 50%
 
-int main() {
-    pwm_config_t pwm_cfg = {
-        .timer_num = 0,
-        .channel_num = 0,
-        .gpio_num = 18,
-        .freq_hz = 1000,
-        .bit_num = 8,
-        .duty_percent = 50
-    };
-
-    pwm_init(&pwm_cfg);
-
-    while(1) {
-        delay(1000000);
-    }
-
-    return 0;
+    pwm_init(gpio, channel, timer, freq, resolution, duty);
 }

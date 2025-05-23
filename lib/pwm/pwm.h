@@ -1,19 +1,15 @@
-#ifndef PWM_H
-#define PWM_H
+#ifndef __PWM_H__
+#define __PWM_H__
 
 #include <stdint.h>
 
-// Cấu hình PWM
-typedef struct {
-    uint8_t timer_num;     // 0..3
-    uint8_t channel_num;   // 0..7
-    uint8_t gpio_num;      // GPIO chân xuất PWM
-    uint32_t freq_hz;      // Tần số PWM mong muốn
-    uint8_t bit_num;       // Độ phân giải bit PWM (max 15)
-    uint8_t duty_percent;  // Chu kỳ xung, từ 0 đến 100%
-} pwm_config_t;
+void pwm_init(uint8_t gpio_num, uint8_t channel_index, uint8_t timer_index,
+              uint32_t freq_hz, uint8_t duty_resolution_bit, uint32_t duty);
 
-// Khai báo hàm khởi tạo PWM
-void pwm_init(const pwm_config_t *cfg);
+void pwm_set_duty(uint8_t channel_index, uint32_t duty, uint8_t duty_resolution_bit);
 
-#endif // PWM_H
+void pwm_start(uint8_t channel_index);
+
+void pwm_stop(uint8_t channel_index);
+
+#endif

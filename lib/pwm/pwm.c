@@ -1,45 +1,65 @@
-#include "pwm.h"
+#include <stdint.h>
 
-// Địa chỉ base LEDC (ESP32)
-#define LEDC_BASE           0x3FF59000
+#define LEDC_BASE_ADDR      0x3FF59000
+#define IO_MUX_BASE_ADDR    0x3FF49000
 
-// Các thanh ghi LEDC Timer (timer 0..3)
-#define LEDC_TIMER_CONF_REG(timer_num) (*(volatile uint32_t*)(LEDC_BASE + 0x40 + (timer_num)*0x20))
-#define LEDC_TIMER_DUTY_REG(timer_num) (*(volatile uint32_t*)(LEDC_BASE + 0x44 + (timer_num)*0x20))
+#define LEDC_TIMER_CONF(n)  (LEDC_BASE_ADDR + 0x000 + (n) * 0x14)
+#define LEDC_TIMER_CONF1(n) (LEDC_BASE_ADDR + 0x004 + (n) * 0x14)
 
-// Các thanh ghi LEDC Channel (channel 0..7)
-#define LEDC_CHANNEL_CONF_REG(ch_num) (*(volatile uint32_t*)(LEDC_BASE + 0x90 + (ch_num)*0x10))
-#define LEDC_CHANNEL_DUTY_REG(ch_num) (*(volatile uint32_t*)(LEDC_BASE + 0x94 + (ch_num)*0x10))
+#define LEDC_CH_CONF0(n)    (LEDC_BASE_ADDR + 0x020 + (n) * 0x14)
+#define LEDC_CH_HPOINT(n)   (LEDC_BASE_ADDR + 0x024 + (n) * 0x14)
+#define LEDC_CH_DUTY(n)     (LEDC_BASE_ADDR + 0x028 + (n) * 0x14)
+#define LEDC_CH_CONF1(n)    (LEDC_BASE_ADDR + 0x02C + (n) * 0x14)
 
-// Địa chỉ GPIO MUX (bạn cần chỉnh sửa đúng theo datasheet)
-#define GPIO_MUX_REG(gpio_num) (*(volatile uint32_t*)(0x3FF49000 + (gpio_num)*4))
+#define IO_MUX_REG(gpio)    (IO_MUX_BASE_ADDR + 0x44 + ((gpio) * 4))
 
-#define TIMER_ENABLE_BIT    (1 << 31)
-#define CHANNEL_ENABLE_BIT  (1 << 31)
+void pwm_config_gpio(uint8_t gpio_num, uint8_t func_index) {
+    volatile uint32_t *reg = (uint32_t *)IO_MUX_REG(gpio_num);
+    *reg &= ~(0b111 << 8);
+    *reg |= (func_index << 8);  // FUNCx = 2/3 tùy GPIO
+}
 
-void pwm_init(const pwm_config_t *cfg) {
-    const uint32_t APB_CLK = 80000000;
-    uint32_t prescaler = APB_CLK / (cfg->freq_hz * (1 << cfg->bit_num));
-    if (prescaler == 0) prescaler = 1;
+void pwm_config_timer(uint8_t timer_index, uint32_t freq_hz, uint8_t duty_resolution_bit) {
+    uint32_t clk_apb = 80000000;
+    uint32_t precision = 1 << duty_resolution_bit;
+    uint32_t div = (clk_apb << 8) / (freq_hz * precision);  // Q8.8
 
-    // Cấu hình timer
-    uint32_t timer_conf = 0;
-    timer_conf |= (prescaler & 0xFF) << 0;
-    timer_conf |= (cfg->bit_num & 0x1F) << 8;
-    timer_conf |= TIMER_ENABLE_BIT;
-    LEDC_TIMER_CONF_REG(cfg->timer_num) = timer_conf;
+    *(volatile uint32_t *)LEDC_TIMER_CONF(timer_index) =
+        (1 << 29) | // reset
+        (0 << 28) | // unpause
+        (0 << 24) | // clk = APB
+        (duty_resolution_bit << 5) |
+        ((div >> 8) & 0x1F); // phần nguyên
 
-    // Cấu hình GPIO MUX cho chân gpio_num xuất PWM
-    GPIO_MUX_REG(cfg->gpio_num) = 0x2;  // Thay đổi nếu cần
+    *(volatile uint32_t *)LEDC_TIMER_CONF1(timer_index) = div & 0xFF; // phần thập phân
+}
 
-    // Cấu hình channel
-    uint32_t channel_conf = 0;
-    channel_conf |= (cfg->timer_num & 0x3) << 0;
-    channel_conf |= CHANNEL_ENABLE_BIT;
-    LEDC_CHANNEL_CONF_REG(cfg->channel_num) = channel_conf;
+void pwm_set_duty(uint8_t channel_index, uint32_t duty, uint8_t duty_resolution_bit) {
+    duty = (duty << 4); // LEDC dùng Q0.8 fixed point => shift 4 bit
 
-    // Thiết lập duty cycle
-    uint32_t max_duty = (1 << cfg->bit_num) - 1;
-    uint32_t duty_val = max_duty * cfg->duty_percent / 100;
-    LEDC_CHANNEL_DUTY_REG(cfg->channel_num) = duty_val;
+    *(volatile uint32_t *)LEDC_CH_HPOINT(channel_index) = 0;
+    *(volatile uint32_t *)LEDC_CH_DUTY(channel_index) = duty;
+}
+
+void pwm_start(uint8_t channel_index) {
+    *(volatile uint32_t *)LEDC_CH_CONF1(channel_index) = (1 << 0); // duty_start
+    *(volatile uint32_t *)LEDC_CH_CONF0(channel_index) |= (1 << 8) | (1 << 12); // para_up + sig_out_en
+}
+
+void pwm_init(uint8_t gpio_num,
+              uint8_t channel_index,
+              uint8_t timer_index,
+              uint32_t freq_hz,
+              uint8_t duty_resolution_bit,
+              uint32_t duty) {
+    pwm_config_gpio(gpio_num, 2); // phần lớn PWM func = 2
+    pwm_config_timer(timer_index, freq_hz, duty_resolution_bit);
+
+    // Liên kết timer -> channel
+    *(volatile uint32_t *)LEDC_CH_CONF0(channel_index) &=
+        ~(0b11 << 30); // clear timer_sel
+    *(volatile uint32_t *)LEDC_CH_CONF0(channel_index) |= (timer_index << 30);
+
+    pwm_set_duty(channel_index, duty, duty_resolution_bit);
+    pwm_start(channel_index);
 }
