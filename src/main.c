@@ -1,45 +1,32 @@
-#include <stdio.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "driver/ledc.h"
-#include "esp_err.h"
+#include "pwm.h"
+#include <stdint.h>
 
-#define PWM_GPIO        18              // Chân xuất PWM
-#define PWM_FREQ_HZ     1000            // Tần số 1kHz
-#define PWM_DUTY        4096            // Duty 50% (tối đa 8191 cho 13-bit)
-#define PWM_RES         LEDC_TIMER_13_BIT
-#define PWM_TIMER       LEDC_TIMER_0
-#define PWM_MODE        LEDC_HIGH_SPEED_MODE
-#define PWM_CHANNEL     LEDC_CHANNEL_0
+// Delay thủ công bằng vòng lặp (không chính xác nhưng đủ test PWM)
+void delay_ms(uint32_t ms) {
+    volatile uint32_t count;
+    while (ms--) {
+        count = 80000;  // khoảng 1ms nếu CPU 80MHz
+        while (count--) {
+            __asm__ __volatile__("nop");
+        }
+    }
+}
 
-void app_main(void) {
-    // 1. Cấu hình Timer cho PWM
-    ledc_timer_config_t timer_conf = {
-        .duty_resolution = PWM_RES,
-        .freq_hz = PWM_FREQ_HZ,
-        .speed_mode = PWM_MODE,
-        .timer_num = PWM_TIMER,
-        .clk_cfg = LEDC_AUTO_CLK
-    };
-    ledc_timer_config(&timer_conf);
+void app_main() {
+    // Khởi tạo PWM: timer1, channel2, 1kHz, 10-bit, GPIO23
+    pwm_init(1, 2, 1000, 10, 23);
 
-    // 2. Cấu hình Channel để xuất PWM
-    ledc_channel_config_t channel_conf = {
-        .channel    = PWM_CHANNEL,
-        .duty       = PWM_DUTY,
-        .gpio_num   = PWM_GPIO,
-        .speed_mode = PWM_MODE,
-        .hpoint     = 0,
-        .timer_sel  = PWM_TIMER
-    };
-    ledc_channel_config(&channel_conf);
-
-    // 3. Thay đổi duty cycle runtime (nếu cần)
     while (1) {
-        for (int duty = 0; duty <= 8191; duty += 512) {
-            ledc_set_duty(PWM_MODE, PWM_CHANNEL, duty);
-            ledc_update_duty(PWM_MODE, PWM_CHANNEL);
-            vTaskDelay(pdMS_TO_TICKS(300));
+        // Tăng độ sáng
+        for (uint8_t duty = 0; duty <= 100; duty += 5) {
+            pwm_set_duty_cycle(2, duty);  // channel 2
+            delay_ms(50);
+        }
+
+        // Giảm độ sáng
+        for (int8_t duty = 100; duty >= 0; duty -= 5) {
+            pwm_set_duty_cycle(2, duty);
+            delay_ms(50);
         }
     }
 }
