@@ -46,7 +46,7 @@ static int s_timer_info[4][2] = {
 /* 
  * @brief Initialize a hardware timer by directly accessing its registers.
  */
-void timer_hw_init(int group, int timer, uint32_t prescaler, uint32_t arr, int enableInterrupt) {
+void Timer_Init(int group, int timer, uint32_t prescaler, uint32_t arr, int enableInterrupt) {
     /* Determine the base address for the selected timer group */
     uint32_t base_address = (group == 0) ? TG0_BASE_ADDR : TG1_BASE_ADDR;
     /* Calculate the offset for the selected timer (each timer occupies 0x20 bytes) */
@@ -98,7 +98,7 @@ void timer_hw_init(int group, int timer, uint32_t prescaler, uint32_t arr, int e
  *
  * Assumes that each tick equals 1µs (e.g., prescaler = 80 for an 80MHz clock).
  */
-void timerDelay(int group, int timer, uint32_t ms) {
+void Timer_Delay(int group, int timer, uint32_t ms) {
     /* Determine the base address for the selected group */
     uint32_t base_address = (group == 0) ? TG0_BASE_ADDR : TG1_BASE_ADDR;
     uint32_t timer_offset = timer * 0x20;
@@ -168,7 +168,7 @@ void IRAM_ATTR timerInterruptHandler(void *arg) {
  * @param group Timer group (0 or 1)
  * @param timer Timer index (0 or 1)
  */
-void register_timer_isr(int group, int timer) {
+void Timer_Isr_Register(int group, int timer) {
     intr_handle_t isr_handle = NULL;
     int index = group * 2 + timer;
     int intr_source = 0;
