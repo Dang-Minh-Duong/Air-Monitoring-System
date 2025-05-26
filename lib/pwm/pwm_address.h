@@ -95,3 +95,71 @@
 #define LEDC_INT_ST_REG          (*(volatile uint32_t *)(0x3FF59184))
 #define LEDC_INT_ENA_REG         (*(volatile uint32_t *)(0x3FF59188))
 #define LEDC_INT_CLR_REG         (*(volatile uint32_t *)(0x3FF5918C))
+
+
+
+
+/* Địa chỉ cơ sở của module LEDC (theo TRM: DR_REG_LEDC_BASE = 0x3FF59000) */
+#define LEDC_BASE            0x3FF59000
+
+/* Địa chỉ DPORT để bật xung và reset module LEDC */
+#define DPORT_PERIP_CLK_EN_REG  (*(volatile uint32_t*)(0x3FF000C0))
+#define DPORT_PERIP_RST_EN_REG  (*(volatile uint32_t*)(0x3FF000C4))
+#define DPORT_LEDC_CLK_EN      (1 << 11)    // bit 11: LEDC_CLK_EN
+#define DPORT_LEDC_RST         (1 << 11)   // bit 11: LEDC_RST
+
+/* Macro truy cập thanh ghi LEDC HSTIMER_CONF */
+#define LEDC_HSTIMER_CONF_REG(x) (*(volatile uint32_t*)(LEDC_BASE + 0x140 + (x)*8))
+
+/* Macro địa chỉ thanh ghi LEDC HSTIMER_VALUE (đọc bộ đếm; không cần dùng ở đây) */
+#define LEDC_HSTIMER_VALUE_REG(x) (*(volatile uint32_t*)(LEDC_BASE + 0x144 + (x)*8))
+
+/* Macro địa chỉ thanh ghi LEDC channel config */
+#define LEDC_HSCH_CONF0_REG(ch) (*(volatile uint32_t*)(LEDC_BASE + (ch)*0x14))
+#define LEDC_HSCH_CONF1_REG(ch) (*(volatile uint32_t*)(LEDC_BASE + 0x0C + (ch)*0x14))
+
+/* Macro địa chỉ thanh ghi LEDC HPOINT và DUTY cho kênh HS */
+#define LEDC_HSCH_HPOINT_REG(ch) (*(volatile uint32_t*)(LEDC_BASE + 0x04 + (ch)*0x14))
+#define LEDC_HSCH_DUTY_REG(ch)   (*(volatile uint32_t*)(LEDC_BASE + 0x08 + (ch)*0x14))
+
+/* Địa chỉ GPIO matrix và IO MUX */
+#define GPIO_FUNC_OUT_SEL_CFG_REG(pin) (*(volatile uint32_t*)(0x3FF44530 + (pin)*4))
+#define GPIO_ENABLE_REG            (*(volatile uint32_t*)(0x3FF44020))
+#define GPIO_ENABLE1_REG           (*(volatile uint32_t*)(0x3FF4402C))
+static const uint32_t gpio_io_mux_addr[] = {
+    [0]  = 0x3FF49044,
+    [1]  = 0x3FF49088,
+    [2]  = 0x3FF49040,
+    [3]  = 0x3FF49084,
+    [4]  = 0x3FF49048,
+    [5]  = 0x3FF4906C,
+    [12] = 0x3FF49034,
+    [13] = 0x3FF49038,
+    [14] = 0x3FF49030,
+    [15] = 0x3FF4903C,
+    [16] = 0x3FF4904C,
+    [17] = 0x3FF49050,
+    [18] = 0x3FF49070,
+    [19] = 0x3FF49074,
+    [21] = 0x3FF4907C,
+    [22] = 0x3FF49080,
+    [23] = 0x3FF4908C,
+    [25] = 0x3FF49024,
+    [26] = 0x3FF49028,
+    [27] = 0x3FF4902C,
+    [32] = 0x3FF4901C,
+    [33] = 0x3FF49020,
+    [34] = 0x3FF49014,
+    [35] = 0x3FF49018,
+    [36] = 0x3FF49004,
+    [37] = 0x3FF49008,
+    [38] = 0x3FF4900C,
+    [39] = 0x3FF49010,
+};
+static inline volatile uint32_t* get_gpio_mux_reg(uint8_t gpio_num) {
+    if (gpio_num >= sizeof(gpio_io_mux_addr)/sizeof(gpio_io_mux_addr[0]) ||
+        gpio_io_mux_addr[gpio_num] == 0) {
+        return NULL; // GPIO không có IO_MUX hợp lệ
+    }
+    return (volatile uint32_t*)gpio_io_mux_addr[gpio_num];
+}
