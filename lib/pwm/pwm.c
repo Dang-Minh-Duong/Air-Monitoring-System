@@ -4,7 +4,7 @@
 #define DPORT_PERIP_CLK_EN_REG       (*(volatile uint32_t*)0x3FF000C0)     // Enable peripheral clocks
 #define GPIO_ENABLE_W1TS_REG         (*(volatile uint32_t*)0x3FF44024)     // Enable output for GPIO < 32
 #define GPIO_ENABLE1_REG             (*(volatile uint32_t*)0x3FF4402C)     // Enable output for GPIO >= 32
-#define GPIO_FUNC0_OUT_SEL_CFG_REG   ((volatile uint32_t*)0x3FF44530)      // GPIO output signal selection
+#define GPIO_FUNC_OUT_SEL_CFG_REG(n) (*(volatile uint32_t*)(0x3FF44530 + (n) * 0x4))   // GPIO output signal selection
 
 // ===== IO_MUX register addresses for each GPIO =====
 static const uint32_t gpio_io_mux_addr[] = {
@@ -52,7 +52,7 @@ void pwm_init(uint8_t timer_num, uint8_t channel_num, uint8_t resolution_bits, u
     LEDC_HSCH_DUTY_REG(channel_num) &= ~(0xFFFFFF);          // Clear previous duty
     LEDC_HSCH_DUTY_REG(channel_num) = (20 << 4);             // Set default duty (shifted left 4 bits)
 
-    GPIO_FUNC0_OUT_SEL_CFG_REG[gpio_num] = 71 + channel_num; // Route LEDC HS_CHx to GPIO
+    GPIO_FUNC_OUT_SEL_CFG_REG(gpio_num) = 71 + channel_num; // Route LEDC HS_CHx to GPIO
 
     if (gpio_num < 32) {
         GPIO_ENABLE_W1TS_REG |= (1 << gpio_num);             // Enable output for GPIO < 32
