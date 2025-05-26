@@ -1,16 +1,18 @@
 // #include <stdio.h>
 // #include "ADC.h"
+// #include "pin.h"
 // #include "freertos/FreeRTOS.h"
 // #include "freertos/task.h"
 
 // void app_main(void)
 // {
-//     // Cấu hình ADC1 channel 0 (GPIO36), độ phân giải 12-bit, suy giảm 11dB, chu kỳ lấy mẫu = 10
+    
+//     adc_configure_pin(ADC_UNIT_2, 14);  /* RTC_IO pin 0 (GPIO36) cho ADC1_CHANNEL_0 */
 //     adc_configure(ADC_UNIT_2, 4, ADC_WIDTH_12Bit, ADC_ATTEN_11DB, 10);
 
 //     while (1)
 //     {
-//         // Đọc giá trị ADC
+        
 //         uint16_t value = adc_read(ADC_UNIT_2);
 
 //         // In kết quả ra UART
@@ -20,37 +22,32 @@
 //         vTaskDelay(pdMS_TO_TICKS(500));
 //     }
 // }
-
-
-#include "pwm.h"
+#include <stdio.h>
 #include <stdint.h>
+#include "pwm.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
-// Delay thủ công bằng vòng lặp (không chính xác nhưng đủ test PWM)
-void delay_ms(uint32_t ms) {
-    volatile uint32_t count;
-    while (ms--) {
-        count = 80000;  // khoảng 1ms nếu CPU 80MHz
-        while (count--) {
-            __asm__ __volatile__("nop");
-        }
-    }
-}
+// Cấu hình thông số PWM
+#define PWM_TIMER      0
+#define PWM_CHANNEL    0
+#define PWM_RES_BITS   10               // Độ phân giải 10-bit (0~1023)
+#define PWM_GPIO       26               // GPIO bất kỳ hỗ trợ output
+#define PWM_FREQ_HZ    5000             // Tần số 5 kHz
 
-void app_main() {
-    // Khởi tạo PWM: timer1, channel2, 1kHz, 10-bit, GPIO23
-    pwm_init(0, 0, 1000, 10, 18);
+void app_main(void) {
+
+    pwm_init(PWM_TIMER, PWM_CHANNEL, PWM_RES_BITS, PWM_GPIO, PWM_FREQ_HZ);
+    
+    uint32_t duty = 0;
+    uint32_t max_duty = (1 << PWM_RES_BITS);
 
     while (1) {
-        // Tăng độ sáng
-        for (uint8_t duty = 0; duty <= 100; duty += 5) {
-            pwm_set_duty_cycle(0, duty);  // channel 2
-            delay_ms(500);
-        }
+        pwm_set_duty(PWM_CHANNEL, duty);
 
-        // Giảm độ sáng
-        for (int8_t duty = 100; duty >= 0; duty -= 5) {
-            pwm_set_duty_cycle(0, duty);
-            delay_ms(500);
-        }
+        duty += max_duty / 10;
+        if (duty > max_duty) duty = 0;
+
+        vTaskDelay(pdMS_TO_TICKS(500)); // Chờ 500ms
     }
 }
