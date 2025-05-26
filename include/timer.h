@@ -41,7 +41,7 @@ void Timer_Init(int group, int timer, uint32_t prescaler, uint64_t arr, int enab
  * @param timer Timer index within the group (0 or 1)
  * @param ms    Delay in milliseconds. Assumes each tick is 1µs.
  */
-void TimerDelay(int group, int timer, uint32_t ms);
+void Timer_Delay(int group, int timer, uint32_t ms);
 
 /* 
  * @brief Register an interrupt service routine (ISR) for the specified timer.
