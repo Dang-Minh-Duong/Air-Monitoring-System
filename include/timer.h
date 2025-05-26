@@ -1,91 +1,61 @@
-#ifndef TIMER_H
-#define TIMER_H
+#ifndef TIMER_MODULE_H
+#define TIMER_MODULE_H
+
+#include <stdint.h>
+#include <stdbool.h>
+
+/* Interrupt mode definitions */
+#define TIMER_INT_DISABLE 0    /* Disable interrupt */
+#define TIMER_INT_EDGE    1    /* Edge-triggered interrupt */
+#define TIMER_INT_LEVEL   2    /* Level-triggered interrupt */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <stdint.h>
-
-/** 
- * @file timer.h
- * @brief Definitions and prototypes for configuring and using the ESP32 hardware timer.
- *
- * This header provides macros, register offsets, and function prototypes for initializing
- * a hardware timer and creating delays based on that timer. The timer can be configured with
- * a prescaler, an alarm (ARR) value, and interrupt mode (disabled, edge-triggered, or level-triggered).
+/* 
+ * Global array of interrupt flags for four timers.
+ * Mapping:
+ *   index 0: Timer Group 0, Timer 0
+ *   index 1: Timer Group 0, Timer 1
+ *   index 2: Timer Group 1, Timer 0
+ *   index 3: Timer Group 1, Timer 1
  */
+extern volatile bool timer_isr_triggered[4];
 
-/** Base addresses for Timer Groups. */
-#define TG0_BASE_ADDR 0x3FF5F000  /**< Base address for Timer Group 0 */
-#define TG1_BASE_ADDR 0x3FF60000  /**< Base address for Timer Group 1 */
-
-/** Timer register offsets for each timer block (each block is 0x20 bytes). */
-#define TIMER_CONFIG_OFFSET    0x0000  /**< Offset for configuration register */
-#define TIMER_LO_OFFSET        0x0004  /**< Offset for low 32 bits of counter */
-#define TIMER_HI_OFFSET        0x0008  /**< Offset for high 32 bits of counter */
-#define TIMER_UPDATE_OFFSET    0x000C  /**< Offset for updating the counter latch */
-#define TIMER_ALARM_LO_OFFSET  0x0010  /**< Offset for low 32 bits of alarm register */
-#define TIMER_ALARM_HI_OFFSET  0x0014  /**< Offset for high 32 bits of alarm register */
-#define TIMER_LOAD_LO_OFFSET   0x0018  /**< Offset for low 32 bits of load register */
-#define TIMER_LOAD_HI_OFFSET   0x001C  /**< Offset for high 32 bits of load register */
-#define TIMER_LOAD_OFFSET      0x0020  /**< Offset for load command register */
-
-/** Timer configuration bits. */
-#define TIMER_ENABLE_BIT       (1UL << 31)  /**< Bit to enable the timer counter */
-#define TIMER_AUTO_RELOAD_BIT  (1UL << 29)  /**< Bit to enable auto-reload mode;
-                                               counter resets automatically upon reaching the alarm value */
-/** Alarm enable bit.
+/* 
+ * @brief Initialize a hardware timer by accessing its registers directly.
  *
- * When set, the timer alarm is enabled and will generate an alarm event.
- * Note: This bit is automatically cleared by the hardware when the alarm triggers.
- */
-#define TIMER_ALARM_EN         (1UL << 10)
-
-/** Interrupt configuration modes for the timer alarm. */
-#define TIMER_INT_DISABLE 0    /**< Disable interrupt: alarm function will not generate an interrupt */
-#define TIMER_INT_EDGE    1    /**< Enable edge-triggered interrupt for the alarm */
-#define TIMER_INT_LEVEL   2    /**< Enable level-triggered interrupt for the alarm */
-
-/**
- * @brief Initializes a hardware timer with specified settings.
- *
- * This function configures a hardware timer in the specified timer group/index with
- * a given prescaler, alarm value (ARR), and interrupt mode. The timer is configured to
- * run in auto-reload mode so that the counter resets automatically upon an alarm event.
- *
- * @param group Timer group (0 for TG0, 1 for TG1).
- * @param timer Timer index within the group (usually 0 or 1).
- * @param prescaler The prescaler value used to adjust the timer tick duration.
- *                  For an 80MHz clock, a prescaler of 80 gives a tick period of 1µs.
- * @param arr Alarm value (in ticks). For example, 500000 corresponds to a ~500ms delay if each tick is 1µs.
- * @param enableInterrupt Interrupt configuration mode:
- *                        - TIMER_INT_DISABLE: interrupt is disabled.
- *                        - TIMER_INT_EDGE: edge-triggered interrupt is enabled.
- *                        - TIMER_INT_LEVEL: level-triggered interrupt is enabled.
- *
- * @note For interrupt-based operation, an ISR must be installed and the external interrupt controller
- *       must be configured accordingly.
+ * @param group         Timer group number (0 for TG0, 1 for TG1)
+ * @param timer         Timer index within the selected group (0 or 1)
+ * @param prescaler     Prescaler value; for example, 80 will produce ~1µs ticks with an 80MHz clock.
+ * @param arr           Alarm (auto-reload) value in ticks. For instance, 500000 ticks is ~500ms.
+ * @param enableInterrupt Interrupt configuration mode (TIMER_INT_DISABLE, TIMER_INT_EDGE, or TIMER_INT_LEVEL).
  */
 void timer_hw_init(int group, int timer, uint32_t prescaler, uint32_t arr, int enableInterrupt);
 
-/**
- * @brief Generates a blocking delay using the hardware timer.
+/* 
+ * @brief Produce a blocking delay using the specified timer.
  *
- * This function sets the timer's alarm value to achieve the desired delay in milliseconds and then
- * busy-waits until the alarm event occurs (i.e. the TIMER_ALARM_EN bit is automatically cleared by hardware).
- * After the alarm event, the alarm bit is re-enabled for subsequent delay operations.
- *
- * @param group Timer group (0 for TG0, 1 for TG1).
- * @param timer Timer index (0 or 1) within the specified group.
- * @param ms Delay duration in milliseconds.
- *
- * @note It is assumed that the timer has been configured with a prescaler that produces a tick period of 1µs.
+ * @param group Timer group number (0 or 1)
+ * @param timer Timer index within the group (0 or 1)
+ * @param ms    Delay in milliseconds. Assumes each tick is 1µs.
  */
 void timerDelay(int group, int timer, uint32_t ms);
+
+/* 
+ * @brief Register an interrupt service routine (ISR) for the specified timer.
+ *
+ * This function uses esp_intr_alloc() to register the ISR, and associates an internal data structure
+ * holding the timer group and timer index with the ISR callback.
+ *
+ * @param group Timer group (0 or 1)
+ * @param timer Timer index (0 or 1)
+ */
+void register_timer_isr(int group, int timer);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  // TIMER_H
+#endif /* TIMER_MODULE_H */
