@@ -43,7 +43,7 @@ extern volatile bool timer_isr_triggered[4];
  * @param enableInterrupt Interrupt configuration mode, choosing one of TIMER_INT_DISABLE,
  *                        TIMER_INT_EDGE, or TIMER_INT_LEVEL.
  */
-void Timer_Init(int group, int timer, uint32_t prescaler, uint32_t arr, int enableInterrupt);
+void Timer_Init(int group, int timer, uint32_t prescaler, uint64_t arr, int enableInterrupt);
 
 /** 
  * @brief Create a blocking delay using the specified timer.
@@ -66,7 +66,7 @@ void Timer_Delay(int group, int timer, uint32_t ms);
  * @param group Timer group (0 or 1).
  * @param timer Timer index within the group (0 or 1).
  */
-void Timer_Isr_Register(int group, int timer);
+void Timer_Isr_Register(int group, int timer, int intType);
 
 #ifdef __cplusplus
 }
