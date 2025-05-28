@@ -1,7 +1,7 @@
-#include "Arduino.h"
 #include "esp_intr_alloc.h"
 #include "esp_attr.h"
 #include "soc/interrupts.h"
+#include "timer_module.h"
 
 /** Level interrupt source definitions */
 #ifndef ETS_TG0_T0_LEVEL_INTR_SOURCE
@@ -20,22 +20,6 @@
 #define ETS_TG1_T1_LEVEL_INTR_SOURCE 19
 #endif
 
-/** Edge interrupt source definitions */
-#ifndef ETS_TG0_T0_EDGE_INTR_SOURCE
-#define ETS_TG0_T0_EDGE_INTR_SOURCE 58
-#endif
-
-#ifndef ETS_TG0_T1_EDGE_INTR_SOURCE
-#define ETS_TG0_T1_EDGE_INTR_SOURCE 59
-#endif
-
-#ifndef ETS_TG1_T0_EDGE_INTR_SOURCE
-#define ETS_TG1_T0_EDGE_INTR_SOURCE 62
-#endif
-
-#ifndef ETS_TG1_T1_EDGE_INTR_SOURCE
-#define ETS_TG1_T1_EDGE_INTR_SOURCE 63
-#endif
 
 /** Base addresses for Timer Groups (ESP32) */
 #define TG0_BASE_ADDR 0x3FF5F000
@@ -76,7 +60,7 @@ static int s_timer_info[4][2] = {
  * @param timer Timer number within the group (0 or 1)
  * @param prescaler Prescaler value for dividing the timer clock
  * @param arr 64-bit auto-reload (alarm) value
- * @param enableInterrupt Interrupt mode: TIMER_INT_LEVEL, TIMER_INT_EDGE, or TIMER_INT_DISABLE
+ * @param enableInterrupt Interrupt mode: TIMER_INT_LEVEL or TIMER_INT_DISABLE
  */
 void Timer_Init(int group, int timer, uint32_t prescaler, uint64_t arr, int enableInterrupt)
 {
@@ -116,12 +100,6 @@ void Timer_Init(int group, int timer, uint32_t prescaler, uint64_t arr, int enab
         *tconfig |= TIMER_ALARM_EN;
         *tinte |= (1 << timer);
         *tconfig |= (1 << 11);  /**< Level interrupt configuration bit */
-    }
-    else if (enableInterrupt == TIMER_INT_EDGE)
-    {
-        *tconfig |= TIMER_ALARM_EN;
-        *tinte |= (1 << timer);
-        *tconfig |= (1 << 12);  /**< Edge interrupt configuration bit */
     }
     else
     {
@@ -169,7 +147,6 @@ void Timer_Delay(int group, int timer, uint32_t ms)
     /* Busy-wait (with yielding) until the alarm triggers */
     while (( *tconfig & TIMER_ALARM_EN ) == TIMER_ALARM_EN)
     {
-        delayMicroseconds(10);
     }
     
     /* Re-enable alarm after delay */
@@ -213,20 +190,13 @@ void Timer_Isr_Register(int group, int timer, int intType)
     int intr_source = 0;
     
     /* Select the interrupt source based on group, timer, and interrupt type */
-    if (group == 0)
-    {
-        if (timer == 0)
-            intr_source = (intType == TIMER_INT_LEVEL) ? ETS_TG0_T0_LEVEL_INTR_SOURCE : ETS_TG0_T0_EDGE_INTR_SOURCE;
-        else if (timer == 1)
-            intr_source = (intType == TIMER_INT_LEVEL) ? ETS_TG0_T1_LEVEL_INTR_SOURCE : ETS_TG0_T1_EDGE_INTR_SOURCE;
+    if (group == 0) {
+    intr_source = (timer == 0) ? ETS_TG0_T0_LEVEL_INTR_SOURCE : ETS_TG0_T1_LEVEL_INTR_SOURCE;
+    } 
+    else {
+    intr_source = (timer == 0) ? ETS_TG1_T0_LEVEL_INTR_SOURCE : ETS_TG1_T1_LEVEL_INTR_SOURCE;
     }
-    else if (group == 1)
-    {
-        if (timer == 0)
-            intr_source = (intType == TIMER_INT_LEVEL) ? ETS_TG1_T0_LEVEL_INTR_SOURCE : ETS_TG1_T0_EDGE_INTR_SOURCE;
-        else if (timer == 1)
-            intr_source = (intType == TIMER_INT_LEVEL) ? ETS_TG1_T1_LEVEL_INTR_SOURCE : ETS_TG1_T1_EDGE_INTR_SOURCE;
-    }
+
     
     esp_err_t err = esp_intr_alloc(
         intr_source,
@@ -234,5 +204,9 @@ void Timer_Isr_Register(int group, int timer, int intType)
         timerInterruptHandler,
         (void*) &s_timer_info[index],
         &isr_handle
-    );
+    ); 
 }
+
+
+
+
