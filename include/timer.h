@@ -12,12 +12,10 @@ extern "C" {
  * @brief Interrupt mode definitions.
  *
  * TIMER_INT_DISABLE : Disable interrupt.
- * TIMER_INT_EDGE    : Use an edge-triggered interrupt.
  * TIMER_INT_LEVEL   : Use a level-triggered interrupt.
  */
 #define TIMER_INT_DISABLE 0
-#define TIMER_INT_EDGE    1
-#define TIMER_INT_LEVEL   2
+#define TIMER_INT_LEVEL   1
 
 /** 
  * @brief Global array of interrupt flags for four timers.
