@@ -3,11 +3,6 @@
 #include "esp_attr.h"
 #include "soc/interrupts.h"
 
-/** Timer interrupt mode definitions */
-#define TIMER_INT_DISABLE 0
-#define TIMER_INT_LEVEL   1
-#define TIMER_INT_EDGE    2
-
 /** Level interrupt source definitions */
 #ifndef ETS_TG0_T0_LEVEL_INTR_SOURCE
 #define ETS_TG0_T0_LEVEL_INTR_SOURCE 14
