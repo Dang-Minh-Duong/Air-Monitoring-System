@@ -1,5 +1,6 @@
 #include "pwm.h"
 #include "pwm_address.h"
+#include "gpio_pwm.h"
 
 /**
  * @brief Initializes a PWM channel with specified parameters.
@@ -10,39 +11,48 @@
  * @param gpio_num         GPIO number to output the PWM signal.
  * @param freq_hz          PWM frequency in Hertz.
  */
+
 void pwm_init(uint8_t timer_num, uint8_t channel_num, uint8_t resolution_bits, uint8_t gpio_num, uint32_t freq_hz) {
+    /* enable ledc clock*/
     DPORT_PERIP_CLK_EN_REG |= (1u << 11);
 
+    /*get timer config regs*/
     volatile uint32_t* timer_conf = &LEDC_HSTIMER_CONF_REG(timer_num);
+
+    /*clear res bits*/
     *timer_conf &= ~(0xF);
+    /*config res*/
     *timer_conf |= (resolution_bits);
 
+    /*calculate divider*/
     unsigned int divider = 80000000 / (freq_hz * (1UL << resolution_bits));
+    /*clear div bits*/
     *timer_conf &= ~(((1u << 18) - 1) << 5);
+    /*write div*/
     *timer_conf |= ((divider) << 13);
 
+    /*clear timer_num bits on channelx reg*/
     LEDC_HSCH_CONF0_REG(channel_num) &= ~0x3;
+    /*choose timer*/
     LEDC_HSCH_CONF0_REG(channel_num) |= (timer_num & 0x3);
+    /*enable signal out*/
     LEDC_HSCH_CONF0_REG(channel_num) |= (1u << 2);
 
+    /*hpoint = 1*/
     LEDC_HSCH_HPOINT_REG(channel_num) = 1;
 
+    /*reset duty cycle bits*/
     LEDC_HSCH_DUTY_REG(channel_num) &= ~(0xffffff);
+    /*set temp duty value*/
     LEDC_HSCH_DUTY_REG(channel_num) = (20 << 4);
 
-    GPIO_FUNC_OUT_SEL_CFG_REG(gpio_num) = 71 + channel_num;
+    /*map to gpio */
+    gpio_pwm_setup(gpio_num, channel_num);
 
-    if (gpio_num < 32) {
-        GPIO_ENABLE_W1TS_REG = (1u << gpio_num);
-    } else {
-        GPIO_ENABLE1_REG |= (1u << (gpio_num - 32));
-    }
-
-    volatile uint32_t* io_mux_reg = (volatile uint32_t*)gpio_io_mux_addr[gpio_num];
-    *io_mux_reg &= ~(0b111 << 12);
-    *io_mux_reg |= (2 << 12);
-
+    /*duty start*/
     LEDC_HSCH_CONF1_REG(channel_num) |= (1u << 31);
+
+    /*rst timer*/
     *timer_conf &= ~(1u << 24);
 }
 
@@ -53,7 +63,10 @@ void pwm_init(uint8_t timer_num, uint8_t channel_num, uint8_t resolution_bits, u
  * @param duty_value   Duty value (raw, not in percent). Max depends on resolution.
  */
 void pwm_set_duty(uint8_t channel_num, uint32_t duty_value) {
+    /*set duty*/
     LEDC_HSCH_DUTY_REG(channel_num) = (duty_value << 4);
+
+    /*duty start*/
     LEDC_HSCH_CONF1_REG(channel_num) |= (1u << 31);
 }
 
@@ -65,11 +78,16 @@ void pwm_set_duty(uint8_t channel_num, uint32_t duty_value) {
  * @param percent          Duty cycle as a percentage (0.0f to 100.0f).
  */
 void pwm_set_duty_percent(uint8_t channel_num, uint8_t resolution_bits, float percent) {
+    /*set percent boundary*/
     if (percent < 0.0f) percent = 0.0f;
     if (percent > 100.0f) percent = 100.0f;
 
+    /*cal max duty*/
     uint32_t max_duty = (1UL << resolution_bits) - 1;
+
+    /*cal duty value from percent and res*/
     uint32_t duty_value = (uint32_t)((percent / 100.0f) * max_duty);
 
+    /*set duty value*/
     pwm_set_duty(channel_num, duty_value);
 }

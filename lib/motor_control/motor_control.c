@@ -19,8 +19,10 @@
  * @param resolution_bits Resolution of the PWM signal in bits.
  */
 void motor_control(float x, float t1, float t2, float t3, uint8_t channel_num, uint8_t resolution_bits) {
+    /*create duty percent var*/
     float duty_percent = 0.0f;
 
+    /*simple control*/
     if (x < t1) {
         duty_percent = 0.0f;         // Turn off motor
     } else if (x < t2) {

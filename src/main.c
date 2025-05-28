@@ -11,21 +11,20 @@
 #define PWM_FREQ_HZ    1000   // Tần số PWM = 1kHz
 
 void app_main(void) {
-    printf("Initializing PWM...\n");
 
     pwm_init(PWM_TIMER, PWM_CHANNEL, PWM_RES_BITS, PWM_GPIO, PWM_FREQ_HZ);
 
     while (1) {
         // Tăng dần từ 0% đến 100%
         for (int duty = 0; duty <= 100; duty += 10) {
-            printf("Duty: %d%%\n", duty);
+           
             pwm_set_duty_percent(PWM_CHANNEL, PWM_RES_BITS, duty);
             vTaskDelay(pdMS_TO_TICKS(500));
         }
 
         // Giảm dần từ 100% về 0%
         for (int duty = 100; duty >= 0; duty -= 10) {
-            printf("Duty: %d%%\n", duty);
+         
             pwm_set_duty_percent(PWM_CHANNEL, PWM_RES_BITS, duty);
             vTaskDelay(pdMS_TO_TICKS(500));
         }
