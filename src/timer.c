@@ -2,6 +2,7 @@
 #include "esp_attr.h"
 #include "soc/interrupts.h"
 #include "timer_module.h"
+#include "soc/dport_reg.h"
 
 /** Level interrupt source definitions */
 #ifndef ETS_TG0_T0_LEVEL_INTR_SOURCE
@@ -64,6 +65,7 @@ static int s_timer_info[4][2] = {
  */
 void Timer_Init(int group, int timer, uint32_t prescaler, uint64_t arr, int enableInterrupt)
 {
+    /* Determine base address register of specific timer */
     uint32_t base_address = (group == 0) ? TG0_BASE_ADDR : TG1_BASE_ADDR;
     /* Each timer block is separated by 0x24 bytes */
     uint32_t timer_offset = timer * 0x24;
@@ -177,13 +179,13 @@ static void IRAM_ATTR timerInterruptHandler(void *arg)
     *tintc |= (1 << timer);
 }
 
+
 /**
  * @brief Register the timer interrupt service routine.
  * @param group Timer group (0 or 1)
  * @param timer Timer number within the group (0 or 1)
- * @param intType Interrupt type: TIMER_INT_LEVEL or TIMER_INT_EDGE
  */
-void Timer_Isr_Register(int group, int timer, int intType)
+void Timer_Isr_Register(int group, int timer)
 {
     intr_handle_t isr_handle = NULL;
     int index = group * 2 + timer;
@@ -196,8 +198,7 @@ void Timer_Isr_Register(int group, int timer, int intType)
     else {
     intr_source = (timer == 0) ? ETS_TG1_T0_LEVEL_INTR_SOURCE : ETS_TG1_T1_LEVEL_INTR_SOURCE;
     }
-
-    
+ 
     esp_err_t err = esp_intr_alloc(
         intr_source,
         ESP_INTR_FLAG_IRAM,
