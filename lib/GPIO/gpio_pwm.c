@@ -1,5 +1,6 @@
 #include "pwm_address.h"
 #include "gpio_pwm.h"
+#include "gpio_address.h"
 
 void gpio_pwm_setup(uint8_t gpio_num, uint8_t signal_index) {
     /* Set GPIO output signal to PWM signal (idx = 71 from HS_CH0) */

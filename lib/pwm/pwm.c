@@ -1,7 +1,7 @@
 #include "pwm.h"
 #include "pwm_address.h"
 #include "gpio_pwm.h"
-
+#include "gpio_address.h"
 /**
  * @brief Initializes a PWM channel with specified parameters.
  *
