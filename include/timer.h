@@ -38,8 +38,8 @@ extern volatile bool timer_isr_triggered[4];
  * @param timer         Timer index within the selected group (0 or 1).
  * @param prescaler     Prescaler value; for example, 80 produces ~1µs ticks with an 80MHz clock.
  * @param arr           Alarm (auto-reload) value in ticks. For instance, 500000 ticks corresponds to ~500ms.
- * @param enableInterrupt Interrupt configuration mode, choosing one of TIMER_INT_DISABLE,
- *                        TIMER_INT_EDGE, or TIMER_INT_LEVEL.
+ * @param enableInterrupt Interrupt configuration mode, choosing one of TIMER_INT_DISABLE
+ *                        or TIMER_INT_LEVEL.
  */
 void Timer_Init(int group, int timer, uint32_t prescaler, uint64_t arr, int enableInterrupt);
 
@@ -64,7 +64,7 @@ void Timer_Delay(int group, int timer, uint32_t ms);
  * @param group Timer group (0 or 1).
  * @param timer Timer index within the group (0 or 1).
  */
-void Timer_Isr_Register(int group, int timer, int intType);
+void Timer_Isr_Register(int group, int timer);
 
 #ifdef __cplusplus
 }
