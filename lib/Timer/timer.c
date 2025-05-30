@@ -1,7 +1,7 @@
 #include "esp_intr_alloc.h"
 #include "esp_attr.h"
 #include "soc/interrupts.h"
-#include "timer_module.h"
+#include "timer.h"
 
 /** Level interrupt source definitions */
 #ifndef ETS_TG0_T0_LEVEL_INTR_SOURCE
