@@ -34,4 +34,19 @@ static const uint32_t gpio_io_mux_addr[] = {
  */
 #define GPIO_ENABLE1_REG             (*(volatile uint32_t*)0x3FF4402C)
 
+/**
+ * @brief GPIO output write to set register (for GPIO 0 - 31).
+ */
+#define GPIO_OUT_W1TS_REG            (*(volatile uint32_t*)0x3FF44008)
+
+/**
+ * @brief GPIO output write to clear register (for GPIO 0 - 31).
+ */
+#define GPIO_OUT_W1TC_REG            (*(volatile uint32_t*)0x3FF4400C)
+
+/**
+ * @brief GPIO output write to clear register (for GPIO 32 - 39).
+ */
+#define GPIO_OUT1_W1TC_REG          (*(volatile uint32_t*)0x3FF44018)
+
 #endif // GPIO_ADDRESS_H
