@@ -40,4 +40,17 @@ void pwm_set_duty(uint8_t channel_num, uint32_t duty_value);
  */
 void pwm_set_duty_percent(uint8_t channel_num, uint8_t resolution_bits, float percent);
 
+/**
+ * @brief Retrieves the current duty cycle (as a percentage) for a PWM channel.
+ *
+ * This function reads the current duty setting from the hardware register
+ * and returns the value as a percentage (0.0 to 100.0) based on the resolution.
+ *
+ * @param channel_num      PWM channel number (0 to 7).
+ * @param resolution_bits  PWM resolution in bits (e.g., 8, 10, 13...).
+ * @return                 Current duty cycle percentage (0.0f to 100.0f).
+ */
+float pwm_get_duty_percent(uint8_t channel_num, uint8_t resolution_bits);
+
+
 #endif // PWM_H

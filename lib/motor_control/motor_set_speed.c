@@ -7,22 +7,24 @@
  *
  * This function ramps the motor's duty cycle to the desired target value in steps,
  * where each step changes by step_percent and delays delay_ms milliseconds.
+ * The current duty cycle is automatically read from hardware.
  *
  * @param pwm_channel     PWM channel number (0–7).
  * @param resolution_bits PWM resolution (e.g., 8, 10, 13).
- * @param current_percent Current duty cycle (0.0 to 100.0).
  * @param target_percent  Desired duty cycle (0.0 to 100.0).
  * @param step_percent    Step size in percent (e.g., 1.0 for 1%).
  * @param delay_ms        Delay per step in milliseconds.
  */
 void motor_set_speed_ramp(uint8_t pwm_channel,
                           uint8_t resolution_bits,
-                          float current_percent,
                           float target_percent,
                           float step_percent,
                           uint32_t delay_ms)
 {
     if (step_percent <= 0.0f || step_percent > 100.0f) return; // invalid step
+
+    // Automatically get the current duty cycle from hardware
+    float current_percent = pwm_get_duty_percent(pwm_channel, resolution_bits);
 
     float step = (target_percent > current_percent) ? step_percent : -step_percent;
     float value = current_percent;

@@ -91,3 +91,31 @@ void pwm_set_duty_percent(uint8_t channel_num, uint8_t resolution_bits, float pe
     /*set duty value*/
     pwm_set_duty(channel_num, duty_value);
 }
+
+/**
+ * @brief Retrieves the current duty cycle (as a percentage) for a PWM channel.
+ *
+ * This function reads the raw duty cycle value from the hardware register and converts
+ * it into a percentage based on the specified resolution.
+ *
+ * @param channel_num      PWM channel number (0 to 7).
+ * @param resolution_bits  PWM resolution in bits (e.g., 8, 10, 13...).
+ * @return                 Current duty cycle in percentage (0.0f to 100.0f).
+ */
+float pwm_get_duty_percent(uint8_t channel_num, uint8_t resolution_bits) {
+    if (channel_num > 7 || resolution_bits == 0 || resolution_bits > 20)
+        return 0.0f;
+
+    // Read the duty register value (bits [24:4] hold the actual duty)
+    uint32_t reg_val = LEDC_HSCH_DUTY_REG(channel_num);
+    uint32_t duty_raw = reg_val >> 4;  // Extract the actual duty value
+
+    // Calculate maximum possible duty value based on resolution
+    uint32_t max_duty = (1UL << resolution_bits) - 1;
+
+    // Convert raw duty to percentage
+    float percent = ((float)duty_raw / (float)max_duty) * 100.0f;
+
+    return percent;
+}
+
