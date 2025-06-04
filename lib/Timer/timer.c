@@ -1,207 +1,121 @@
-#include "esp_intr_alloc.h"
-#include "esp_attr.h"
-#include "soc/interrupts.h"
 #include "timer.h"
 
-/** Level interrupt source definitions */
-#ifndef ETS_TG0_T0_LEVEL_INTR_SOURCE
-#define ETS_TG0_T0_LEVEL_INTR_SOURCE 14
-#endif
-
-#ifndef ETS_TG0_T1_LEVEL_INTR_SOURCE
-#define ETS_TG0_T1_LEVEL_INTR_SOURCE 15
-#endif
-
-#ifndef ETS_TG1_T0_LEVEL_INTR_SOURCE
-#define ETS_TG1_T0_LEVEL_INTR_SOURCE 18
-#endif
-
-#ifndef ETS_TG1_T1_LEVEL_INTR_SOURCE
-#define ETS_TG1_T1_LEVEL_INTR_SOURCE 19
-#endif
-
-/** Base addresses for Timer Groups (ESP32) */
+/** Base addresses for ESP32 Timer Groups */
 #define TG0_BASE_ADDR 0x3FF5F000
 #define TG1_BASE_ADDR 0x3FF60000
 
-/** Register offsets for each timer (each timer occupies 0x24 bytes) */
-#define TIMER_CONFIG_OFFSET 0x0000
-#define TIMER_LO_OFFSET 0x0004
-#define TIMER_HI_OFFSET 0x0008
-#define TIMER_UPDATE_OFFSET 0x000C
-#define TIMER_ALARM_LO_OFFSET 0x0010
-#define TIMER_ALARM_HI_OFFSET 0x0014
-#define TIMER_LOAD_LO_OFFSET 0x0018
-#define TIMER_LOAD_HI_OFFSET 0x001C
-#define TIMER_LOAD_OFFSET 0x0020
-#define TIMER_INT_EN_OFFSET 0x0098
-#define TIMER_INT_CL_OFFSET 0x00A4
+/** Register offsets for each timer (0x24 bytes apart) */
+#define TIMER_CONFIG_OFFSET     0x0000
+#define TIMER_COUNT_LO_OFFSET   0x0008
+#define TIMER_COUNT_HI_OFFSET   0x000C
+#define TIMER_ALARM_LO_OFFSET   0x0010
+#define TIMER_ALARM_HI_OFFSET   0x0014
+#define TIMER_LOAD_LO_OFFSET    0x0018
+#define TIMER_LOAD_HI_OFFSET    0x001C
+#define TIMER_LOAD_OFFSET       0x0020
 
-/** Bit definitions for timer registers */
-#define TIMER_ENABLE_BIT (1UL << 31)
-#define TIMER_AUTO_RELOAD_BIT (1UL << 29)
-#define TIMER_ALARM_EN (1UL << 10)
-
-/** Global flag array for timer ISR triggers (up to 4 timers) */
-volatile bool timer_isr_triggered[4] = {false, false, false, false};
-
-/** Array holding timer info for each timer as {group, timer} */
-static int s_timer_info[4][2] = {
-    {0, 0}, /**< Timer Group 0, Timer 0 */
-    {0, 1}, /**< Timer Group 0, Timer 1 */
-    {1, 0}, /**< Timer Group 1, Timer 0 */
-    {1, 1}  /**< Timer Group 1, Timer 1 */
-};
+/** Bit masks for timer configuration */
+#define TIMER_ENABLE_BIT        (1UL << 31)
+#define TIMER_AUTO_RELOAD_BIT   (1UL << 29)
+#define TIMER_ALARM_EN          (1UL << 10)
+#define TIMER_PRESCALER_MASK    0xFFFF
+#define TIMER_PRESCALER_SHIFT   13
 
 /**
- * @brief Initialize a hardware timer.
+ * @brief Structure holding pointers to the timer's registers.
+ */
+typedef struct {
+  volatile uint32_t* tconfig;
+  volatile uint32_t* tcountlo;
+  volatile uint32_t* tcounthi;
+  volatile uint32_t* talarmlo;
+  volatile uint32_t* talarmhi;
+  volatile uint32_t* tloadlo;
+  volatile uint32_t* tloadhi;
+  volatile uint32_t* tload;
+} timer_ptrs_t;
+
+/**
+ * @brief Get register pointers for a specific timer.
+ * 
  * @param group Timer group (0 or 1)
  * @param timer Timer number within the group (0 or 1)
- * @param prescaler Prescaler value for dividing the timer clock
- * @param arr 64-bit auto-reload (alarm) value
- * @param enableInterrupt Interrupt mode: TIMER_INT_LEVEL or TIMER_INT_DISABLE
+ * @return timer_ptrs_t Struct with pointers to timer registers
  */
-void Timer_Init(int group, int timer, uint32_t prescaler, uint64_t arr, int enableInterrupt)
-{
-    uint32_t base_address = (group == 0) ? TG0_BASE_ADDR : TG1_BASE_ADDR;
-    /* Each timer block is separated by 0x24 bytes */
-    uint32_t timer_offset = timer * 0x24;
+timer_ptrs_t getTimerPointers(int group, int timer) {
+  timer_ptrs_t ptrs;
+  uint32_t base_address = (group == 0) ? TG0_BASE_ADDR : TG1_BASE_ADDR;
+  uint32_t timer_offset = timer * 0x24;
 
-    volatile uint32_t *tconfig = (volatile uint32_t *)(base_address + timer_offset + TIMER_CONFIG_OFFSET);
-    volatile uint32_t *talarmlo = (volatile uint32_t *)(base_address + timer_offset + TIMER_ALARM_LO_OFFSET);
-    volatile uint32_t *talarmhi = (volatile uint32_t *)(base_address + timer_offset + TIMER_ALARM_HI_OFFSET);
-    volatile uint32_t *tloadlo = (volatile uint32_t *)(base_address + timer_offset + TIMER_LOAD_LO_OFFSET);
-    volatile uint32_t *tloadhi = (volatile uint32_t *)(base_address + timer_offset + TIMER_LOAD_HI_OFFSET);
-    volatile uint32_t *tload = (volatile uint32_t *)(base_address + timer_offset + TIMER_LOAD_OFFSET);
-    volatile uint32_t *tinte = (volatile uint32_t *)(base_address + TIMER_INT_EN_OFFSET);
+  ptrs.tconfig   = (volatile uint32_t*)(base_address + timer_offset + TIMER_CONFIG_OFFSET);
+  ptrs.tcountlo  = (volatile uint32_t*)(base_address + timer_offset + TIMER_COUNT_LO_OFFSET);
+  ptrs.tcounthi  = (volatile uint32_t*)(base_address + timer_offset + TIMER_COUNT_HI_OFFSET);
+  ptrs.talarmlo  = (volatile uint32_t*)(base_address + timer_offset + TIMER_ALARM_LO_OFFSET);
+  ptrs.talarmhi  = (volatile uint32_t*)(base_address + timer_offset + TIMER_ALARM_HI_OFFSET);
+  ptrs.tloadlo   = (volatile uint32_t*)(base_address + timer_offset + TIMER_LOAD_LO_OFFSET);
+  ptrs.tloadhi   = (volatile uint32_t*)(base_address + timer_offset + TIMER_LOAD_HI_OFFSET);
+  ptrs.tload     = (volatile uint32_t*)(base_address + timer_offset + TIMER_LOAD_OFFSET);
 
-    /* Disable timer */
-    *tconfig &= ~TIMER_ENABLE_BIT;
-
-    /* Set prescaler (clear bits [13-28] and set new value) */
-    *tconfig = (*tconfig & ~(((uint32_t)0xFFFF) << 13)) | (prescaler << 13);
-
-    /* Enable auto-reload */
-    *tconfig |= TIMER_AUTO_RELOAD_BIT;
-
-    /* Set alarm value (64-bit) */
-    *talarmlo = (uint32_t)(arr & 0xFFFFFFFF);
-    *talarmhi = (uint32_t)(arr >> 32);
-
-    /* Reset timer counter */
-    *tloadlo = 0;
-    *tloadhi = 0;
-    *tload = 1;
-
-    /* Configure interrupt mode if enabled */
-    if (enableInterrupt == TIMER_INT_LEVEL)
-    {
-        *tconfig |= TIMER_ALARM_EN;
-        *tinte |= (1 << timer);
-        *tconfig |= (1 << 11); /**< Level interrupt configuration bit */
-    }
-    else
-    {
-        /* Disable alarm if interrupts are not used */
-        *tconfig &= ~TIMER_ALARM_EN;
-    }
-
-    /* Enable timer */
-    *tconfig |= TIMER_ENABLE_BIT;
+  return ptrs;
 }
 
 /**
- * @brief Generate a blocking delay using the hardware timer.
+ * @brief Initialize the timer with a prescaler and auto-reload setting.
+ * 
  * @param group Timer group (0 or 1)
- * @param timer Timer number within the group (0 or 1)
+ * @param timer Timer number (0 or 1)
+ * @param prescaler Clock divider (min 2, max 65536)
+ * @param autoReload Enable auto-reload mode (true = repeat, false = one-shot)
+ */
+void Timer_Init(int group, int timer, uint16_t prescaler, uint64_t arr) {
+  timer_ptrs_t t = getTimerPointers(group, timer);
+
+  /** Disable the timer before configuration */
+  *t.tconfig &= ~TIMER_ENABLE_BIT;
+
+  /** Set prescaler (bits 13–28) */
+  *t.tconfig &= ~(TIMER_PRESCALER_MASK << TIMER_PRESCALER_SHIFT);
+  *t.tconfig |= ((prescaler & TIMER_PRESCALER_MASK) << TIMER_PRESCALER_SHIFT);
+
+  /** Configure auto-reload behavior */
+  *t.tconfig |= TIMER_AUTO_RELOAD_BIT;
+
+  /** Enable the timer */
+  *t.tconfig |= TIMER_ENABLE_BIT;
+}
+
+/**
+ * @brief Create a blocking delay using a hardware timer.
+ * 
+ * @param group Timer group (0 or 1)
+ * @param timer Timer number (0 or 1)
  * @param ms Delay time in milliseconds
  */
-void Timer_Delay(int group, int timer, uint32_t ms)
-{
-    uint32_t base_address = (group == 0) ? TG0_BASE_ADDR : TG1_BASE_ADDR;
-    uint32_t timer_offset = timer * 0x24;
+void Timer_Delay(int group, int timer, uint32_t ms) {
+  timer_ptrs_t t = getTimerPointers(group, timer);
 
-    volatile uint32_t *tconfig = (volatile uint32_t *)(base_address + timer_offset + TIMER_CONFIG_OFFSET);
-    volatile uint32_t *talarmlo = (volatile uint32_t *)(base_address + timer_offset + TIMER_ALARM_LO_OFFSET);
-    volatile uint32_t *talarmhi = (volatile uint32_t *)(base_address + timer_offset + TIMER_ALARM_HI_OFFSET);
-    volatile uint32_t *tloadlo = (volatile uint32_t *)(base_address + timer_offset + TIMER_LOAD_LO_OFFSET);
-    volatile uint32_t *tloadhi = (volatile uint32_t *)(base_address + timer_offset + TIMER_LOAD_HI_OFFSET);
-    volatile uint32_t *tload = (volatile uint32_t *)(base_address + timer_offset + TIMER_LOAD_OFFSET);
+  /** Read prescaler from config register */
+  uint32_t prescaler = ((*t.tconfig >> TIMER_PRESCALER_SHIFT) & TIMER_PRESCALER_MASK);
 
-    /* Convert delay time from milliseconds to microsecond ticks */
-    uint64_t delay_ticks = ms * 1000;
+  /** Calculate delay ticks from milliseconds */
+  uint64_t delay_ticks = ((uint64_t)ms * (80000000UL / prescaler)) / 1000;
 
-    /* Reset counter */
-    *tloadlo = 0;
-    *tloadhi = 0;
-    *tload = 1;
+  /** Load counter with zero */
+  *t.tloadlo = 0;
+  *t.tloadhi = 0;
+  *t.tload = 1;
 
-    /* Set alarm value */
-    *talarmlo = (uint32_t)(delay_ticks & 0xFFFFFFFF);
-    *talarmhi = (uint32_t)(delay_ticks >> 32);
+  /** Set alarm value */
+  *t.talarmlo = (uint32_t)(delay_ticks & 0xFFFFFFFF);
+  *t.talarmhi = (uint32_t)(delay_ticks >> 32);
 
-    /* Ensure alarm is enabled */
-    *tconfig |= TIMER_ALARM_EN;
+  /** Enable the alarm */
+  *t.tconfig |= TIMER_ALARM_EN;
 
-    /* Busy-wait (with yielding) until the alarm triggers */
-    while ((*tconfig & TIMER_ALARM_EN) == TIMER_ALARM_EN)
-    {
-    }
-
-    /* Re-enable alarm after delay */
-    *tconfig |= TIMER_ALARM_EN;
-}
-
-/**
- * @brief Timer interrupt service routine.
- * @param arg Pointer to an array containing {group, timer}
- */
-static void IRAM_ATTR timerInterruptHandler(void *arg)
-{
-    int *timerInfo = (int *)arg;
-    int group = timerInfo[0];
-    int timer = timerInfo[1];
-
-    uint32_t base_address = (group == 0) ? TG0_BASE_ADDR : TG1_BASE_ADDR;
-    uint32_t timer_offset = timer * 0x24;
-    volatile uint32_t *tconfig = (volatile uint32_t *)(base_address + timer_offset + TIMER_CONFIG_OFFSET);
-    volatile uint32_t *tintc = (volatile uint32_t *)(base_address + TIMER_INT_CL_OFFSET);
-
-    /* Mark that the interrupt occurred */
-    int index = group * 2 + timer;
-    timer_isr_triggered[index] = true;
-
-    /* Re-enable alarm and clear the interrupt */
-    *tconfig |= TIMER_ALARM_EN;
-    *tintc |= (1 << timer);
-}
-
-/**
- * @brief Register the timer interrupt service routine.
- * @param group Timer group (0 or 1)
- * @param timer Timer number within the group (0 or 1)
- * @param intType Interrupt type: TIMER_INT_LEVEL or TIMER_INT_EDGE
- */
-void Timer_Isr_Register(int group, int timer, int intType)
-{
-    intr_handle_t isr_handle = NULL;
-    int index = group * 2 + timer;
-    int intr_source = 0;
-
-    /* Select the interrupt source based on group, timer, and interrupt type */
-    if (group == 0)
-    {
-        intr_source = (timer == 0) ? ETS_TG0_T0_LEVEL_INTR_SOURCE : ETS_TG0_T1_LEVEL_INTR_SOURCE;
-    }
-    else
-    {
-        intr_source = (timer == 0) ? ETS_TG1_T0_LEVEL_INTR_SOURCE : ETS_TG1_T1_LEVEL_INTR_SOURCE;
-    }
-
-    esp_err_t err = esp_intr_alloc(
-        intr_source,
-        ESP_INTR_FLAG_IRAM,
-        timerInterruptHandler,
-        (void *)&s_timer_info[index],
-        &isr_handle);
+  /** Wait until the alarm triggers (polling TIMER_ALARM_EN bit) */
+  while ((*t.tconfig & TIMER_ALARM_EN) == TIMER_ALARM_EN) {
+  }
+  
+  /** Re-enable alarm for future use */
+  *t.tconfig |= TIMER_ALARM_EN;
 }

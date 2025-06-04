@@ -2,7 +2,6 @@
 #include "gpio.h"
 #include "gpio_address.h"
 
-
 void gpio_pwm_setup(uint8_t gpio_num, uint8_t signal_index)
 {
     /* Set GPIO output signal to PWM signal (idx = 71 from HS_CH0) */
@@ -30,9 +29,9 @@ void gpio_pwm_setup(uint8_t gpio_num, uint8_t signal_index)
 /**
  * Configure a given RTC IO pin for analog input via RTC ADC path.
  */
-void adc_configure_pin(adc_unit_t adc, int rtc_pin)
+void gpio_adc_setup(adc_unit_t adc, int rtc_pin)
 {
-    if (rtc_pin < 0 || rtc_pin >= 18)
+    if (rtc_pin < 0 || rtc_pin >= 40)
         return;
 
     uint8_t gpio = rtc_pin_to_gpio[rtc_pin];
@@ -61,9 +60,9 @@ void adc_configure_pin(adc_unit_t adc, int rtc_pin)
 /**
  * Configure a GPIO pin for output (push-pull).
  */
-void gpio_output_configure_pin(int gpio_num)
+void gpio_led_setup(int gpio_num)
 {
-    if (gpio_num < 0 || gpio_num > 39)
+    if ((gpio_num >= 0 && gpio_num < 19))
         return;
 
     volatile uint32_t *mux_reg = (volatile uint32_t *)gpio_io_mux_addr[gpio_num];
@@ -72,16 +71,15 @@ void gpio_output_configure_pin(int gpio_num)
 
     uint32_t val = *mux_reg;
 
-    /* Step 1: Configure IO_MUX register */
-    val &= ~(7 << 12); // Clear MCU_SEL bits [14:12]
-    val |= (2 << 12);  // MCU_SEL = 2 (GPIO function)
-    val &= ~(1 << 8);  // FUN_WPU = 0 (disable pull-up)
-    val &= ~(1 << 7);  // FUN_WPD = 0 (disable pull-down)
-    // Optional: set FUN_DRV here if needed (bit [11:10])
+    /* Configure IO_MUX register */
+    val &= ~(7 << 12); /*Clear MCU_SEL bits [14:12]*/
+    val |= (2 << 12);  /*MCU_SEL = 2 (GPIO function)*/
+    val &= ~(1 << 8);  /*FUN_WPU = 0 (disable pull-up)*/
+    val &= ~(1 << 7);  /*FUN_WPD = 0 (disable pull-down)*/
 
     *mux_reg = val;
 
-    /* Step 2: Enable output driver via GPIO_ENABLE_W1TS */
+    /* Enable output driver via GPIO_ENABLE_W1TS */
     if (gpio_num < 32)
         GPIO_ENABLE_W1TS_REG = (1 << gpio_num);
     else
