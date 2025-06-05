@@ -1,35 +1,44 @@
-#include "motor_control.h"
-#include "pwm.h"
+#include "motor_set_speed.h"
+#include <stdint.h>
 
 /**
- * @brief Controls motor speed based on a sensor input using threshold values.
- *
- * This function adjusts the motor PWM duty cycle depending on the value of `x`
- * compared to the thresholds `t1`, `t2`, and `t3`. The duty cycle is set to:
- * - 0% if x < t1
- * - 50% if t1 ≤ x < t2
- * - 100% if t2 ≤ x < t3
- * - 100% if x ≥ t3
- *
- * @param x               The input value used to determine motor speed.
- * @param t1              First threshold value (for 0% duty).
- * @param t2              Second threshold value (for 50% duty).
- * @param t3              Third threshold value (for 100% duty).
- * @param channel_num     PWM channel number (0 to 7).
- * @param resolution_bits Resolution of the PWM signal in bits.
+ * @brief Set motor speed based on PPM value with threshold ranges
+ * 
+ * @param pwm_channel     PWM channel number (0-7)
+ * @param resolution_bits PWM resolution (e.g., 8, 10, 13)
+ * @param ppm_value      Current PPM reading
+ * @param thres1         First threshold (motor off below this)
+ * @param thres2         Second threshold (25% duty between thres1 and thres2)
+ * @param thres3         Third threshold (50% duty between thres2 and thres3)
+ *                        (100% duty above thres3)
+ * @param ramp_step      Step size for ramping (percentage)
+ * @param ramp_delay_ms  Delay between steps (milliseconds)
  */
-void motor_control(float x, float t1, float t2, float t3, uint8_t channel_num, uint8_t resolution_bits) {
-    /*create duty percent var*/
-    float duty_percent = 0.0f;
-
-    /*simple control*/
-    if (x < t1) {
-        duty_percent = 0.0f;         // Turn off motor
-    } else if (x < t2) {
-        duty_percent = 50.0f;        // Set 50% duty
-    } else {
-        duty_percent = 100.0f;       // Set max duty
+void motor_control(uint8_t pwm_channel,
+                         uint8_t resolution_bits,
+                         float ppm_value,
+                         float thres1,
+                         float thres2,
+                         float thres3,
+                         float ramp_step,
+                         uint32_t ramp_delay_ms)
+{
+    float target_duty = 0.0f;
+    
+    // Determine target duty based on PPM thresholds
+    if (ppm_value <= thres1) {
+        target_duty = 0.0f;      // Motor off
+    } 
+    else if (ppm_value > thres1 && ppm_value <= thres2) {
+        target_duty = 25.0f;     // 25% duty
     }
-
-    pwm_set_duty_percent(channel_num, resolution_bits, duty_percent);
+    else if (ppm_value > thres2 && ppm_value <= thres3) {
+        target_duty = 50.0f;     // 50% duty
+    }
+    else {
+        target_duty = 100.0f;    // 100% duty
+    }
+    
+    // Use your existing ramp function for smooth transition
+    motor_set_speed_ramp(pwm_channel, resolution_bits, target_duty, ramp_step, ramp_delay_ms);
 }
