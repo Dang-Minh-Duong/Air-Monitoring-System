@@ -1,4 +1,5 @@
 #include "motor_set_speed.h"
+#include "motor_control.h"
 #include <stdint.h>
 
 /**
@@ -21,7 +22,7 @@ void motor_control(uint8_t pwm_channel,
                          float thres2,
                          float thres3,
                          float ramp_step,
-                         uint32_t ramp_delay_ms)
+                         uint32_t total_ramp_time_ms)
 {
     float target_duty = 0.0f;
     
@@ -40,5 +41,5 @@ void motor_control(uint8_t pwm_channel,
     }
     
     // Use your existing ramp function for smooth transition
-    motor_set_speed_ramp(pwm_channel, resolution_bits, target_duty, ramp_step, ramp_delay_ms);
+    motor_set_speed_ramp(pwm_channel, resolution_bits, target_duty, ramp_step, total_ramp_time_ms);
 }

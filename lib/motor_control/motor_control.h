@@ -23,6 +23,6 @@ void motor_control(uint8_t pwm_channel,
                          float thres2,
                          float thres3,
                          float ramp_step,
-                         uint32_t ramp_delay_ms);
+                         uint32_t total_ramp_time_ms);
 
 #endif /* MOTOR_SET_SPEED_H */

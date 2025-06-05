@@ -1,5 +1,6 @@
 #include "pwm.h"
 #include "gpio_address.h"
+#include "motor_stop.h"
 
 /**
  * @brief Stops the DC motor by setting PWM to 0 and clearing direction pin.
