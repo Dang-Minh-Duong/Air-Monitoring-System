@@ -1,77 +1,71 @@
 #include "motor_control.h"
-#include "pwm.h"
 
-/**
- * @brief Controls motor speed based on a sensor input using threshold values.
- *
- * This function adjusts the motor PWM duty cycle depending on the value of `x`
- * compared to the thresholds `t1`, `t2`, and `t3`. The duty cycle is set to:
- * - 0% if x < t1
- * - 50% if t1 ≤ x < t2
- * - 100% if t2 ≤ x < t3
- * - 100% if x ≥ t3
- *
- * @param x               The input value used to determine motor speed.
- * @param t1              First threshold value (for 0% duty).
- * @param t2              Second threshold value (for 50% duty).
- * @param t3              Third threshold value (for 100% duty).
- * @param channel_num     PWM channel number (0 to 7).
- * @param resolution_bits Resolution of the PWM signal in bits.
- */
-void motor_control(uint16_t x, uint16_t t1, uint16_t t2, uint8_t channel_num, uint8_t resolution_bits) {
-    /*create duty percent var*/
-    float duty_percent = 0.0f;
+void motor_control_auto(uint8_t pwm_channel,
+                        uint8_t resolution_bits,
+                        uint16_t value,
+                        float thres1,
+                        float thres2,
+                        float ramp_step,
+                        uint32_t total_ramp_time_ms, int groupTimer, int timer)
+{
+    float target_duty = 0.0f;
 
-    /*simple control*/
-    if (x < t1) {
-        duty_percent = 0.0f;         // Turn off motor
-    } else if (x < t2) {
-        duty_percent = 50.0f;        // Set 50% duty
-    } else {
-        duty_percent = 100.0f;       // Set max duty
+    /*Determine target duty based on PPM thresholds*/
+    if (value < thres1)
+    {
+        target_duty = 0.0f;
+    }
+    else if (value < thres2)
+    {
+        target_duty = 75.0f;
     }
 
-    pwm_set_duty_percent(channel_num, resolution_bits, duty_percent);
+    else
+    {
+        target_duty = 100.0f;
+    }
+
+    /*Use your existing ramp function for smooth transition*/
+    motor_set_speed_ramp(pwm_channel, resolution_bits, target_duty, ramp_step, total_ramp_time_ms, groupTimer, timer);
 }
-/**
- * @brief Smoothly change motor speed to target duty cycle.
- *
- * This function ramps the motor's duty cycle to the desired target value in steps,
- * where each step changes by step_percent and delays delay_ms milliseconds.
- * The current duty cycle is automatically read from hardware.
- *
- * @param pwm_channel     PWM channel number (0–7).
- * @param resolution_bits PWM resolution (e.g., 8, 10, 13).
- * @param target_percent  Desired duty cycle (0.0 to 100.0).
- * @param step_percent    Step size in percent (e.g., 1.0 for 1%).
- * @param delay_ms        Delay per step in milliseconds.
- */
-// void motor_set_speed_ramp(uint8_t pwm_channel,
-//                           uint8_t resolution_bits,
-//                           float target_percent,
-//                           float step_percent,
-//                           uint32_t delay_ms)
-// {
-//     if (step_percent <= 0.0f || step_percent > 100.0f) return; // invalid step
+void motor_set_speed_ramp(uint8_t pwm_channel,
+                          uint8_t resolution_bits,
+                          float target_percent,
+                          float step_percent,
+                          uint32_t total_ramp_time_ms, int groupTimer, int timer)
+{
+    /* Validate step percentage */
+    if (step_percent <= 0.0f || step_percent > 100.0f)
+        return;
 
-//     // Automatically get the current duty cycle from hardware
-//     float current_percent = pwm_get_duty_percent(pwm_channel, resolution_bits);
+    /* Get current duty cycle and determine direction */
+    float current_percent = pwm_get_duty_percent(pwm_channel, resolution_bits);
+    float step = (target_percent > current_percent) ? step_percent : -step_percent;
+    float value = current_percent;
 
-//     float step = (target_percent > current_percent) ? step_percent : -step_percent;
-//     float value = current_percent;
+    /* Calculate automatic timing */
+    float percent_diff = fabsf(target_percent - current_percent);
+    uint32_t num_steps = (uint32_t)(percent_diff / step_percent);
 
-//     while (fabsf(value - target_percent) > step_percent) {
-//         value += step;
+    /* Prevent division by zero when no ramp needed */
+    uint32_t delay_ms = (num_steps > 0) ? (total_ramp_time_ms / num_steps) : 0;
 
-//         // Clamp to valid range (0.0 - 100.0)
-//         if (value < 0.0f) value = 0.0f;
-//         if (value > 100.0f) value = 100.0f;
+    /* Ensure minimum delay for system stability */
+    if (delay_ms < 1)
+        delay_ms = 1;
 
-//         pwm_set_duty_percent(pwm_channel, resolution_bits, value);
-//         esp_timer_delay_ms(delay_ms);
-//     }
+    /* Execute ramp */
+    while (fabsf(value - target_percent) > step_percent)
+    {
+        value += step;
+        /* Clamp value to valid range */
+        value = (value < 0.0f) ? 0.0f : (value > 100.0f) ? 100.0f
+                                                         : value;
 
-//     // Set to final exact target to avoid overshoot or undershoot
-//     pwm_set_duty_percent(pwm_channel, resolution_bits, target_percent);
-// }
+        pwm_set_duty_percent(pwm_channel, resolution_bits, value);
+        Timer_Delay(groupTimer, timer, delay_ms);
+    }
 
+    /* Ensure precise final value */
+    pwm_set_duty_percent(pwm_channel, resolution_bits, target_percent);
+}

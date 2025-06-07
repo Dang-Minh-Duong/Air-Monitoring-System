@@ -92,8 +92,23 @@ typedef enum
 #define SENS_MEAS2_DATA_SAR 0
 
 /*Function prototypes*/
+/**
+ * @brief Configure the ADC unit, channel, resolution, attenuation, and sampling cycle.
+ *
+ * @param adc          ADC unit (ADC_UNIT_1 or ADC_UNIT_2).
+ * @param ch           ADC channel (0–7 for ADC1, 0–9 for ADC2).
+ * @param res          ADC resolution (9–12 bits).
+ * @param atten        Input attenuation (0, 3, 6, or 11 dB).
+ * @param sample_cycle Sampling time in ADC clock cycles.
+ */
 void adc_configure(adc_unit_t adc, adc_channel_t ch, adc_resolution_t res,
                    adc_atten_t atten, uint8_t sample_cycle);
+                   /**
+ * @brief Start a single ADC conversion and return the result.
+ *
+ * @param adc ADC unit to read from (ADC_UNIT_1 or ADC_UNIT_2).
+ * @return 12-bit ADC result (0–4095).
+ */
 uint16_t adc_read(adc_unit_t adc);
 
 #endif
