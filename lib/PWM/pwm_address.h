@@ -7,7 +7,7 @@
  * @brief Peripheral clock enable register.
  * Used to enable clocks for various peripherals including LEDC (bit 11).
  */
-#define DPORT_PERIP_CLK_EN_REG (*(volatile uint32_t *)0x3FF000C0)
+
 
 /**
  * @brief LEDC high-speed timer configuration register.
