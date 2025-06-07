@@ -38,7 +38,6 @@ void app_main(void)
         ledControl(21, 22, 23, adcValue, 500, 600);
         blynk_send_int(adcValue, BLYNK_AUTH_TOKEN, BLYNK_VIRTUAL_PIN_GAS_LEVEL, TAG);
         blynk_send_int(123, BLYNK_AUTH_TOKEN, BLYNK_VIRTUAL_PIN_SPEED, TAG);
-        int value;
         Timer_Delay(0, 1, 500);
     }
 }
