@@ -44,10 +44,9 @@ timer_ptrs_t getTimerPointers(int group, int timer) {
  * 
  * @param group Timer group (0 or 1)
  * @param timer Timer number (0 or 1)
- * @param prescaler Clock divider (min 2, max 65536)
- * @param arr Auto-reload value (not used in current code but can be added)
+ * @param prescaler Clock divider 
  */
-void Timer_Init(int group, int timer, uint16_t prescaler, uint64_t arr) {
+void Timer_Init(int group, int timer, uint16_t prescaler) {
   timer_ptrs_t t = getTimerPointers(group, timer);
 
   /** Disable the timer before configuration */
@@ -71,14 +70,14 @@ void Timer_Init(int group, int timer, uint16_t prescaler, uint64_t arr) {
  * @param timer Timer number (0 or 1)
  * @param ms Delay time in milliseconds
  */
-void Timer_Delay(int group, int timer, uint32_t ms) {
+void Timer_Delay(int group, int timer, uint64_t ms) {
   timer_ptrs_t t = getTimerPointers(group, timer);
 
   /** Read prescaler from config register */
   uint32_t prescaler = ((*t.tconfig >> TIMER_PRESCALER_SHIFT) & TIMER_PRESCALER_MASK);
 
   /** Calculate delay ticks from milliseconds */
-  uint64_t delay_ticks = ((uint64_t)ms * (80000000UL / prescaler)) / 1000;
+  uint64_t delay_ticks = ms * (80000000UL / prescaler)) / 1000;
 
   /** Load counter with zero */
   *t.tloadlo = 0;
