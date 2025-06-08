@@ -41,9 +41,8 @@ void app_main(void)
        - timer_group: timer group number (0 or 1)
        - timer_num: timer number in group (0 or 1)
        - prescaler: clock prescaler value (e.g., 80)
-       - alarm_value: timer count value for alarm/interrupt (e.g., 1000)
     */
-    Timer_Init(0, 1, 80, 1000);
+    Timer_Init(0, 1, 80);
 
     /* Initialize LCD
        Parameters:
