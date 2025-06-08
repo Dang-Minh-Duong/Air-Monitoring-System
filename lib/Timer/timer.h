@@ -10,9 +10,8 @@
  * @param group Timer group (0 or 1)
  * @param timer Timer number (0 or 1)
  * @param prescaler Clock divider (min 2, max 65536)
- * @param arr Auto-reload value (not used in current code but can be used for future extension)
  */
-void Timer_Init(int group, int timer, uint16_t prescaler, uint64_t arr);
+void Timer_Init(int group, int timer, uint16_t prescaler);
 
 /**
  * @brief Create a blocking delay using a hardware timer.
