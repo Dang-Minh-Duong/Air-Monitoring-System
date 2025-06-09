@@ -69,7 +69,23 @@ void Timer_Init(int group, int timer, uint16_t prescaler) {
  * @param group Timer group (0 or 1)
  * @param timer Timer number (0 or 1)
  * @param ms Delay time in milliseconds
+ * 
+ * Note: The timer runs at a fixed 80 MHz (80,000,000 Hz),  
+ * so this frequency is used to calculate the delay ticks from ms.
+ * 
+ * Calculation:
+ * delay_ticks = ms * (80,000,000 / prescaler) / 1000
+ * 
+ * Explanation:
+ * - 80,000,000 is the timer clock frequency in Hz (ticks per second)
+ * - prescaler divides the timer clock frequency to slow down the timer
+ * - ms * (80,000,000 / prescaler) converts milliseconds to timer ticks
+ * - dividing by 1000 converts milliseconds to seconds
+ * 
+ * Result:
+ * delay_ticks is the total number of timer ticks needed to create the delay.
  */
+
 void Timer_Delay(int group, int timer, uint64_t ms) {
   timer_ptrs_t t = getTimerPointers(group, timer);
 
