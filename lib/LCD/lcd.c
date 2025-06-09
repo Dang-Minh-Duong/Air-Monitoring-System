@@ -1,7 +1,5 @@
 #include "lcd.h"
-#include "i2c.h"
-#include "timer.h"
-#include <stdio.h>
+
 
 /**
  * @brief Write a byte to the LCD expander via I2C, keeping backlight on.
