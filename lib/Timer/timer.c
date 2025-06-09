@@ -40,7 +40,7 @@ timer_ptrs_t getTimerPointers(int group, int timer) {
 }
 
 /**
- * @brief Initialize the timer with a prescaler and auto-reload setting.
+ * @brief Initialize the timer with a prescaler setting.
  * 
  * @param group Timer group (0 or 1)
  * @param timer Timer number (0 or 1)
