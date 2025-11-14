@@ -1,4 +1,4 @@
-#Air monitoring system
+# Air monitoring system
 
 •	Developed a real-time air quality monitoring system using ESP32, programmed entirely in low-level C with direct register access for high performance and control.
 
